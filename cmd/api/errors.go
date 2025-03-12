@@ -1,8 +1,13 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/http"
+)
+
+var (
+	ErrEmptyJSONBody = errors.New("empty json body")
 )
 
 func (app *application) internalServerError(w http.ResponseWriter, r *http.Request, err error) {

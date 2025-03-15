@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/lib/pq"
 )
@@ -112,7 +113,8 @@ func (s *PostStore) Update(ctx context.Context, post *Post) error {
 	return nil
 }
 
-func (s *PostStore) GetUserFeed(ctx context.Context, userId int64) ([]PostWithMeta, error) {
+// pfq must be validated / sanitized before calling this function
+func (s *PostStore) GetUserFeed(ctx context.Context, userId int64, pfq PaginatedFeedQuery) ([]PostWithMeta, error) {
 	query := `
 		SELECT p.id, p.content, p.title, p.user_id, p.tags, p.created_at, p.updated_at, COUNT(c.id), u.username
 		FROM posts p
@@ -123,12 +125,28 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userId int64) ([]PostWithMe
 		JOIN followers f 
 		ON f.follower_id = p.user_id OR p.user_id = $1
 		WHERE f.user_id = $1
+		AND ($2::VARCHAR(100)[] = '{}' OR p.tags @> $2::VARCHAR(100)[])
+		AND ($3 = '' OR p.content ILIKE '%' || $3 || '%' OR p.title ILIKE '%' || $3 || '%')
+		AND ($4 = '' OR p.created_at >= $4::timestamp with time zone)
+		AND ($5 = '' OR p.created_at <= $5::timestamp with time zone)
 		GROUP BY p.id, u.username
-		ORDER BY p.created_at DESC
+		ORDER BY p.created_at ` + pfq.Sort + `
+		LIMIT $6
+		OFFSET $7
 	`
 	var postsWithMeta []PostWithMeta
 
-	rows, err := s.db.QueryContext(ctx, query, userId)
+	rows, err := s.db.QueryContext(
+		ctx,
+		query,
+		userId,
+		pq.Array(pfq.Filter.Tags),
+		pfq.Filter.Search,
+		parseDbTime(pfq.Filter.Since),
+		parseDbTime(pfq.Filter.Until),
+		pfq.Limit,
+		pfq.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -155,4 +173,15 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userId int64) ([]PostWithMe
 	}
 
 	return postsWithMeta, nil
+}
+
+func parseDbTime(t string) []byte {
+	if t == "" {
+		return []byte{}
+	}
+	parsedT, err := time.Parse(time.RFC3339, t)
+	if err != nil {
+		return []byte{}
+	}
+	return pq.FormatTimestamp(parsedT)
 }

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"log"
-
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/shehab910/social/internal/db"
 	"github.com/shehab910/social/internal/env"
 	"github.com/shehab910/social/internal/store"
@@ -12,8 +12,10 @@ import (
 const version = "v0.0.1"
 
 func main() {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+
 	if err := godotenv.Load(); err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal().Msg("Error loading .env file")
 	}
 
 	dbCfg := dbConfig{
@@ -36,7 +38,7 @@ func main() {
 		cfg.db.maxIdleTime,
 	)
 	if err != nil {
-		log.Panic("Couldn't connect to db\n", err)
+		log.Panic().Err(err).Msg("Couldn't connect to db\n")
 	}
 	defer db.Close()
 	log.Print("DB Connection Established")
@@ -49,5 +51,5 @@ func main() {
 	}
 
 	mux := app.mount()
-	log.Fatal(app.run(mux))
+	log.Fatal().Err(app.run(mux)).Msg("Error Running Server")
 }

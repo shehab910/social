@@ -1,12 +1,12 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/rs/zerolog/log"
 	"github.com/shehab910/social/internal/store"
 )
 
@@ -77,6 +77,6 @@ func (app *application) run(mux http.Handler) error {
 		IdleTimeout:  time.Minute,
 	}
 
-	log.Printf("Starting server on %s", srv.Addr)
+	log.Info().Str("addr", srv.Addr).Str("env", app.config.env).Msg("Starting server")
 	return srv.ListenAndServe()
 }

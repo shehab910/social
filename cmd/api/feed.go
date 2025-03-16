@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"log"
 	"net/http"
 
 	"github.com/shehab910/social/internal/store"
@@ -22,7 +21,6 @@ func (app *application) getUserFeedHandler(w http.ResponseWriter, r *http.Reques
 		app.badRequestError(w, r, err)
 		return
 	}
-	log.Printf("Parsed query: %+v", pfq)
 
 	if err := Validate.Struct(pfq); err != nil {
 		app.badRequestError(w, r, err)

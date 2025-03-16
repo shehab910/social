@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/rs/zerolog/log"
+	"github.com/shehab910/social/internal/mailer"
 	"github.com/shehab910/social/internal/store"
 	"github.com/shehab910/social/internal/utils"
 )
@@ -56,6 +58,19 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		app.internalServerError(w, r, err)
 		return
 	}
+	go func() {
+		log.Info().Int64("userId", user.ID).Msg("sending welcome email")
+		err := app.mailer.SendWelcomeEmail(mailer.WelcomeEmailTemplateData{
+			Username:     user.Username,
+			Email:        user.Email,
+			WelcomeLink:  "http://localhost:3000/login",
+			SupportEmail: app.config.email.SupportEmail,
+		})
+		if err != nil {
+			log.Error().Err(err).Int64("userId", user.ID).Msg("failed to send welcome email")
+		}
+
+	}()
 }
 
 func (app *application) loginUserHandler(w http.ResponseWriter, r *http.Request) {
@@ -107,10 +122,17 @@ func (app *application) loginUserHandler(w http.ResponseWriter, r *http.Request)
 
 		if isLastSentTokenExpired || userNeverLoggedIn {
 			verifyUrl := "http://localhost:" + strings.Split(app.config.addr, ":")[1] + "/v1/auth/verify/" + token
-			if err := utils.SendVerifyUserEmail(dbUser.Email, verifyUrl, app.config.email); err != nil {
+			err := app.mailer.SendVerificationEmail(mailer.VerifyUserEmailTemplateData{
+				Username:         dbUser.Username,
+				Email:            dbUser.Email,
+				VerificationLink: verifyUrl,
+				SupportEmail:     app.config.email.SupportEmail,
+			})
+			if err != nil {
 				app.internalServerError(w, r, err)
 				return
 			}
+
 			if err := app.store.Users.UpdateLastLogin(r.Context(), dbUser.ID); err != nil {
 				app.internalServerError(w, r, err)
 				return

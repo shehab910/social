@@ -7,8 +7,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/zerolog/log"
+	"github.com/shehab910/social/internal/mailer"
 	"github.com/shehab910/social/internal/store"
-	"github.com/shehab910/social/internal/utils"
 )
 
 type dbConfig struct {
@@ -20,7 +20,7 @@ type dbConfig struct {
 
 type config struct {
 	db                  dbConfig
-	email               utils.EmailConfig
+	email               mailer.EmailConfig
 	addr                string
 	env                 string
 	tokenExpirationMins int
@@ -30,6 +30,7 @@ type config struct {
 type application struct {
 	config config
 	store  *store.Storage
+	mailer mailer.Client
 }
 
 func (app *application) mount() http.Handler {

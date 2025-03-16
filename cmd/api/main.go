@@ -6,8 +6,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/shehab910/social/internal/db"
 	"github.com/shehab910/social/internal/env"
+	"github.com/shehab910/social/internal/mailer"
 	"github.com/shehab910/social/internal/store"
-	"github.com/shehab910/social/internal/utils"
 )
 
 const version = "v0.0.1"
@@ -19,11 +19,12 @@ func main() {
 		log.Fatal().Msg("Error loading .env file")
 	}
 
-	emailCfg := utils.EmailConfig{
+	emailCfg := mailer.EmailConfig{
 		FromEmail:         env.GetString("FROM_EMAIL", ""),
 		FromEmailSmtp:     env.GetString("FROM_EMAIL_SMTP", ""),
 		FromEmailPassword: env.GetString("FROM_EMAIL_PASSWORD", ""),
 		FromEmailPort:     env.GetString("FROM_EMAIL_PORT", ""),
+		SupportEmail:      env.GetString("SUPPORT_EMAIL", "shehabs.910@gmail.com"),
 	}
 
 	dbCfg := dbConfig{
@@ -56,9 +57,12 @@ func main() {
 
 	store := store.NewStorage(db)
 
+	mailer := mailer.NewSmtpMailer(emailCfg)
+
 	app := &application{
 		config: cfg,
 		store:  store,
+		mailer: mailer,
 	}
 
 	mux := app.mount()

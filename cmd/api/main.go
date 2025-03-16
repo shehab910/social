@@ -7,6 +7,7 @@ import (
 	"github.com/shehab910/social/internal/db"
 	"github.com/shehab910/social/internal/env"
 	"github.com/shehab910/social/internal/store"
+	"github.com/shehab910/social/internal/utils"
 )
 
 const version = "v0.0.1"
@@ -18,6 +19,13 @@ func main() {
 		log.Fatal().Msg("Error loading .env file")
 	}
 
+	emailCfg := utils.EmailConfig{
+		FromEmail:         env.GetString("FROM_EMAIL", ""),
+		FromEmailSmtp:     env.GetString("FROM_EMAIL_SMTP", ""),
+		FromEmailPassword: env.GetString("FROM_EMAIL_PASSWORD", ""),
+		FromEmailPort:     env.GetString("FROM_EMAIL_PORT", ""),
+	}
+
 	dbCfg := dbConfig{
 		addr:         env.GetString("DB_ADDR", "postgres://postgres:root@localhost/social?sslmode=disable"),
 		maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),
@@ -26,9 +34,12 @@ func main() {
 	}
 
 	cfg := config{
-		addr: env.GetString("ADDR", ":8080"),
-		db:   dbCfg,
-		env:  env.GetString("ENV", "dev"),
+		db:                  dbCfg,
+		email:               emailCfg,
+		addr:                env.GetString("ADDR", ":8080"),
+		env:                 env.GetString("ENV", "dev"),
+		tokenExpirationMins: env.GetInt("TOKEN_EXPIRATION_MINS", 15),
+		jwtSecret:           env.GetString("JWT_SECRET", ""),
 	}
 
 	db, err := db.New(

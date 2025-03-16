@@ -5,6 +5,11 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
+    bio VARCHAR(255),
+    image_url VARCHAR(255),
+    role VARCHAR(255) NOT NULL DEFAULT 'user',
+    last_login_at TIMESTAMP(0) WITH TIME ZONE DEFAULT NULL,
+    verified BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP(0) with time zone NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP(0) with time zone NOT NULL DEFAULT NOW()
 );

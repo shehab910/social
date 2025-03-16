@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"time"
 
 	"github.com/lib/pq"
+	"github.com/shehab910/social/internal/utils"
 )
 
 type Post struct {
@@ -179,7 +179,7 @@ func parseDbTime(t string) []byte {
 	if t == "" {
 		return []byte{}
 	}
-	parsedT, err := time.Parse(time.RFC3339, t)
+	parsedT, err := utils.ParseTime(t)
 	if err != nil {
 		return []byte{}
 	}

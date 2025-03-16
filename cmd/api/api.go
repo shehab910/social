@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/zerolog/log"
 	"github.com/shehab910/social/internal/store"
+	"github.com/shehab910/social/internal/utils"
 )
 
 type dbConfig struct {
@@ -18,9 +19,12 @@ type dbConfig struct {
 }
 
 type config struct {
-	addr string
-	db   dbConfig
-	env  string
+	db                  dbConfig
+	email               utils.EmailConfig
+	addr                string
+	env                 string
+	tokenExpirationMins int
+	jwtSecret           string
 }
 
 type application struct {
@@ -62,6 +66,13 @@ func (app *application) mount() http.Handler {
 			r.Group(func(r chi.Router) {
 				r.Get("/feed", app.getUserFeedHandler)
 			})
+		})
+
+		r.Route("/auth", func(r chi.Router) {
+			//TODO: handle duplicate email/username
+			r.Post("/register", app.registerUserHandler)
+			r.Post("/login", app.loginUserHandler)
+			r.Get("/verify/{token}", app.verifyUserHandler)
 		})
 	})
 	return r

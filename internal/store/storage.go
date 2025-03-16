@@ -21,7 +21,10 @@ type Storage struct {
 	}
 	Users interface {
 		GetById(ctx context.Context, id int64) (*User, error)
+		GetByEmail(ctx context.Context, email string) (*User, error)
 		Create(context.Context, *User) error
+		VerifyUser(ctx context.Context, userId int64) error
+		UpdateLastLogin(ctx context.Context, userId int64) error
 	}
 	Comments interface {
 		GetByPostID(ctx context.Context, postID int64) ([]Comment, error)

@@ -1,10 +1,13 @@
 package utils
 
 import (
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 )
+
+//TODO: refactor to a struct with config that takes jwtSecret
 
 func GenerateToken(email string, userId int64, role string, isVerified bool, tokenExpirationMins int, jwtSecret string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -21,7 +24,8 @@ func GenerateToken(email string, userId int64, role string, isVerified bool, tok
 }
 
 func ValidateToken(tokenString string, jwtSecret string) (jwt.MapClaims, error) {
-	parsedToken, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+	token := strings.Replace(tokenString, "Bearer ", "", 1)
+	parsedToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
 			return nil, jwt.ErrSignatureInvalid

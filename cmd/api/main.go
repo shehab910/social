@@ -1,12 +1,15 @@
 package main
 
 import (
+	"time"
+
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/shehab910/social/internal/db"
 	"github.com/shehab910/social/internal/env"
 	"github.com/shehab910/social/internal/mailer"
+	ratelimiter "github.com/shehab910/social/internal/rate-limiter"
 	"github.com/shehab910/social/internal/store"
 )
 
@@ -39,8 +42,13 @@ func main() {
 		email:               emailCfg,
 		addr:                env.GetString("ADDR", ":8080"),
 		env:                 env.GetString("ENV", "dev"),
-		tokenExpirationMins: env.GetInt("TOKEN_EXPIRATION_MINS", 15),
-		jwtSecret:           env.GetString("JWT_SECRET", ""),
+		tokenExpirationMins: env.GetInt("TOKEN_EXPIRATION_MINS", 120),
+		jwtSecret:           env.GetString("JWT_SECRET", "jwtSecret"),
+		rateLimiter: ratelimiter.Config{
+			RequestsPerTimeFrame: env.GetInt("RATE_LIMITER_REQUESTS_PER_TIME_FRAME", 100),
+			TimeFrame:            env.GetDuration("RATE_LIMITER_TIME_FRAME", 1*time.Minute),
+			Enabled:              env.GetBool("RATE_LIMITER_ENABLED", false),
+		},
 	}
 
 	db, err := db.New(
@@ -53,16 +61,22 @@ func main() {
 		log.Panic().Err(err).Msg("Couldn't connect to db\n")
 	}
 	defer db.Close()
-	log.Print("DB Connection Established")
+	log.Info().Msg("DB Connection Established")
 
 	store := store.NewStorage(db)
 
 	mailer := mailer.NewSmtpMailer(emailCfg)
 
+	rateLimiter := ratelimiter.NewFixedWindowRateLimiter(
+		cfg.rateLimiter.RequestsPerTimeFrame,
+		cfg.rateLimiter.TimeFrame,
+	)
+
 	app := &application{
-		config: cfg,
-		store:  store,
-		mailer: mailer,
+		config:      cfg,
+		store:       store,
+		mailer:      mailer,
+		rateLimiter: rateLimiter,
 	}
 
 	mux := app.mount()

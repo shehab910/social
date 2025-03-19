@@ -53,13 +53,13 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 
-	comments, err := app.store.Comments.GetByPostID(r.Context(), post.ID)
-	if err != nil {
-		app.internalServerError(w, r, err)
-		return
-	}
+	// comments, err := app.store.Comments.GetByPostIdWithUser(r.Context(), post.ID)
+	// if err != nil {
+	// 	app.internalServerError(w, r, err)
+	// 	return
+	// }
 
-	post.Comments = comments
+	// post.Comments = comments
 
 	if err := app.jsonResponse(w, http.StatusOK, post); err != nil {
 		app.internalServerError(w, r, err)
@@ -146,7 +146,7 @@ func (app *application) postContextMiddleware(next http.Handler) http.Handler {
 			app.badRequestError(w, r, errors.New("wrong post id"))
 			return
 		}
-		post, err := app.store.Posts.GetById(rCtx, postIdParsed)
+		post, err := app.store.Posts.GetByIdWithUser(rCtx, postIdParsed)
 		if err != nil {
 			switch {
 			case errors.Is(err, store.ErrNotFound):

@@ -60,3 +60,11 @@ func (app *application) customErrorResponse(w http.ResponseWriter, r *http.Reque
 
 	writeJSONErr(w, status, err.Error())
 }
+
+func (app *application) rateLimitExceededResponse(w http.ResponseWriter, r *http.Request, retryAfter string) {
+	log.Warn().Str("method", r.Method).Str("path", r.URL.Path).Msg("rate limit exceeded")
+
+	w.Header().Set("Retry-After", retryAfter)
+
+	writeJSONErr(w, http.StatusTooManyRequests, "rate limit exceeded, retry after: "+retryAfter)
+}

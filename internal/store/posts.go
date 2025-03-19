@@ -18,7 +18,7 @@ type Post struct {
 	CreatedAt string    `json:"created_at"`
 	UpdatedAt string    `json:"updated_at"`
 	Comments  []Comment `json:"comments"`
-	User      User      `json:"user"`
+	User      User      `json:"user,omitempty"`
 }
 
 type PostWithMeta struct {
@@ -50,11 +50,13 @@ func (s *PostStore) Create(ctx context.Context, post *Post) error {
 	)
 }
 
-func (s *PostStore) GetById(ctx context.Context, id int64) (*Post, error) {
+func (s *PostStore) GetByIdWithUser(ctx context.Context, id int64) (*Post, error) {
 	query := `
-		SELECT id, title, content, user_id, created_at, updated_at, tags
-		FROM posts
-		WHERE id = $1
+		SELECT p.id, p.title, p.content, p.user_id, p.created_at, p.updated_at, p.tags, p.user_id, u.username, u.email
+		FROM posts p
+		JOIN users u
+		ON p.user_id = u.id
+		WHERE p.id = $1
 	`
 	var post Post
 	err := s.db.QueryRowContext(ctx, query, id).Scan(
@@ -65,6 +67,9 @@ func (s *PostStore) GetById(ctx context.Context, id int64) (*Post, error) {
 		&post.CreatedAt,
 		&post.UpdatedAt,
 		pq.Array(&post.Tags),
+		&post.User.ID,
+		&post.User.Username,
+		&post.User.Email,
 	)
 
 	if err != nil {

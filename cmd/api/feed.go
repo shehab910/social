@@ -27,8 +27,8 @@ func (app *application) getUserFeedHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// TODO: replace when auth implemented
-	posts, err := app.store.Posts.GetUserFeed(r.Context(), int64(3), pfq)
+	userId := app.currentUserIdFromCtx(r)
+	posts, err := app.store.Posts.GetUserFeed(r.Context(), userId, pfq)
 	if err != nil {
 		app.internalServerError(w, r, err)
 		return

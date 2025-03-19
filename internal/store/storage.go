@@ -13,7 +13,7 @@ var (
 
 type Storage struct {
 	Posts interface {
-		GetById(ctx context.Context, id int64) (*Post, error)
+		GetByIdWithUser(ctx context.Context, id int64) (*Post, error)
 		Create(context.Context, *Post) error
 		Update(context.Context, *Post) error
 		DeleteById(ctx context.Context, id int64) error
@@ -27,7 +27,7 @@ type Storage struct {
 		UpdateLastLogin(ctx context.Context, userId int64) error
 	}
 	Comments interface {
-		GetByPostID(ctx context.Context, postID int64) ([]Comment, error)
+		GetByPostIdWithUser(ctx context.Context, postID int64) ([]Comment, error)
 		Create(context.Context, *Comment) error
 	}
 	Followers interface {

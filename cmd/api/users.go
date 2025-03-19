@@ -8,11 +8,27 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shehab910/social/internal/store"
+	"github.com/shehab910/social/internal/utils"
 )
 
 type userKey string
 
 const userCtx userKey = "user"
+
+func (app *application) currentUserIdFromCtx(r *http.Request) int64 {
+	userId, _ := r.Context().Value("userId").(int64)
+	return userId
+}
+
+func (app *application) getMeHandler(w http.ResponseWriter, r *http.Request) {
+	claims, err := utils.ValidateToken(r.Header.Get("Authorization"), app.config.jwtSecret)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	app.jsonResponse(w, http.StatusOK, claims)
+}
 
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromCtx(r)

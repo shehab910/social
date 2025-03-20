@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,60 +12,66 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SlidersHorizontal, X } from "lucide-react";
-import { useSearchParams } from "react-router";
+import { TagInput } from "./tag-input";
+import { PaginatedFeedQuery } from "@/types";
+import { useState } from "react";
 
-export default function FeedFilters() {
-  const [searchParams, setSearchParams] = useSearchParams();
+//TODO: fix: tags are case sensitive
 
-  const initialSort = searchParams.get("sort") || "desc";
-  const initialTags = searchParams.get("tags")
-    ? searchParams.get("tags")!.split(",")
-    : [];
+//TODO: ISSUE: clearing tags from outside the select component doesn't update the feed
 
-  const [sort, setSort] = useState(initialSort);
-  const [selectedTags, setSelectedTags] = useState(initialTags);
+type FeedFiltersProps = {
+  feedQuery: PaginatedFeedQuery;
+  setFeedQuery: React.Dispatch<React.SetStateAction<PaginatedFeedQuery>>;
+  onSubmit: (() => void) | undefined;
+};
+export default function FeedFilters({
+  feedQuery,
+  setFeedQuery,
+  onSubmit,
+}: FeedFiltersProps) {
+  const [open, setOpen] = useState(false);
 
-  const popularTags = [
-    "technology",
-    "travel",
-    "food",
-    "health",
-    "art",
-    "music",
-    "sports",
-  ];
-
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams);
-
-    // Update sort parameter
-    if (sort) {
-      params.set("sort", sort);
-    } else {
-      params.delete("sort");
+  const onFilterOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      onSubmit?.();
     }
-
-    // Update tags parameter
-    if (selectedTags.length > 0) {
-      params.set("tags", selectedTags.join(","));
-    } else {
-      params.delete("tags");
-    }
-
-    // Reset offset when filters change
-    params.set("offset", "0");
-
-    setSearchParams(params);
-  }, [sort, selectedTags, setSearchParams]);
-
-  const handleTagToggle = (tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
+    setOpen(isOpen);
   };
 
+  const selectedTags = feedQuery?.tags || [];
+  const addTag = (tag: string) => {
+    setFeedQuery((prev) => {
+      const newFQ = structuredClone(prev);
+      if (!newFQ.tags) newFQ.tags = [];
+      newFQ.tags.push(tag);
+      return newFQ;
+    });
+  };
+  const removeTag = (tag: string) => {
+    setFeedQuery((prev) => {
+      const newFQ = structuredClone(prev);
+      if (!newFQ.tags) return prev; // should never happen but to make TS happy
+      newFQ.tags = newFQ.tags.filter((t) => t !== tag);
+      return newFQ;
+    });
+  };
   const clearAllTags = () => {
-    setSelectedTags([]);
+    setFeedQuery((prev) => {
+      const newFQ = structuredClone(prev);
+      newFQ.tags = [];
+      return newFQ;
+    });
+  };
+
+  const sort = feedQuery.sort;
+  const setSort = (newSort: string) => {
+    if (sort !== "asc" && sort !== "desc") return;
+    setFeedQuery((prev) => {
+      const newFQ = structuredClone(prev);
+      newFQ.sort = newSort as "asc" | "desc";
+      return newFQ;
+    });
   };
 
   return (
@@ -81,7 +86,10 @@ export default function FeedFilters() {
             >
               #{tag}
               <button
-                onClick={() => handleTagToggle(tag)}
+                onClick={() => {
+                  removeTag(tag);
+                  onSubmit?.();
+                }}
                 className="ml-1 rounded-full hover:bg-muted p-0.5"
               >
                 <X className="h-3 w-3" />
@@ -94,14 +102,17 @@ export default function FeedFilters() {
             variant="ghost"
             size="sm"
             className="h-6 px-2 text-xs"
-            onClick={clearAllTags}
+            onClick={() => {
+              clearAllTags();
+              onSubmit?.();
+            }}
           >
             Clear
           </Button>
         </div>
       )}
 
-      <DropdownMenu>
+      <DropdownMenu open={open} onOpenChange={onFilterOpenChange}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="ml-auto">
             <SlidersHorizontal className="mr-2 h-4 w-4" />
@@ -111,31 +122,29 @@ export default function FeedFilters() {
         <DropdownMenuContent align="end" className="w-56">
           <DropdownMenuLabel>Sort by</DropdownMenuLabel>
           <DropdownMenuRadioGroup value={sort} onValueChange={setSort}>
-            <DropdownMenuRadioItem value="recent">
+            <DropdownMenuRadioItem value="desc">
               Most Recent
             </DropdownMenuRadioItem>
-            <DropdownMenuRadioItem value="popular">
+            <DropdownMenuRadioItem value="asc">
+              Oldest First
+            </DropdownMenuRadioItem>
+            {/* TODO: implement trending and most popular */}
+            {/* <DropdownMenuRadioItem value="popular">
               Most Popular
             </DropdownMenuRadioItem>
             <DropdownMenuRadioItem value="trending">
               Trending
-            </DropdownMenuRadioItem>
+            </DropdownMenuRadioItem> */}
           </DropdownMenuRadioGroup>
-
           <DropdownMenuSeparator />
-
-          <DropdownMenuLabel>Popular Tags</DropdownMenuLabel>
+          <DropdownMenuLabel>Tags</DropdownMenuLabel>
           <div className="p-2 flex flex-wrap gap-1.5">
-            {popularTags.map((tag) => (
-              <Badge
-                key={tag}
-                variant={selectedTags.includes(tag) ? "default" : "outline"}
-                className="cursor-pointer"
-                onClick={() => handleTagToggle(tag)}
-              >
-                #{tag}
-              </Badge>
-            ))}
+            <div
+              className="sticky top-0 z-10 bg-white p-1"
+              onKeyDown={(e) => e.stopPropagation()}
+            >
+              <TagInput fields={selectedTags} add={addTag} remove={removeTag} />
+            </div>
           </div>
         </DropdownMenuContent>
       </DropdownMenu>

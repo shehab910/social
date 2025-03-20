@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation } from "react-router-dom";
 import {
   Bell,
   Home,
@@ -104,6 +106,7 @@ export default function Header() {
           </SheetContent>
         </Sheet>
 
+        {/* Desktop Logo (Mobile) */}
         <Link to="/" className="md:hidden">
           <span className="font-bold text-lg">SocialApp</span>
         </Link>
@@ -268,8 +271,13 @@ export default function Header() {
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem>
-                  <UserIcon className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
+                  <Link
+                    to={`/profile/${user.username}`}
+                    className="flex items-center"
+                  >
+                    <UserIcon className="mr-2 h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <Settings className="mr-2 h-4 w-4" />

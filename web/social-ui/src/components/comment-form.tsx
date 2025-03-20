@@ -6,21 +6,28 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAddComment } from "@/hooks/use-comments";
 
 interface CommentFormProps {
-  postId: string;
-  onCommentSubmit: (postId: string, content: string) => void;
+  postId: number;
 }
 
-export function CommentForm({ postId, onCommentSubmit }: CommentFormProps) {
+export function CommentForm({ postId }: CommentFormProps) {
   const [content, setContent] = useState("");
+  const addCommentMutation = useAddComment();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (content.trim()) {
-      onCommentSubmit(postId, content);
-      setContent("");
-    }
+    if (!content.trim()) return;
+
+    addCommentMutation.mutate(
+      { postId, content },
+      {
+        onSuccess: () => {
+          setContent("");
+        },
+      }
+    );
   };
 
   return (
@@ -38,10 +45,22 @@ export function CommentForm({ postId, onCommentSubmit }: CommentFormProps) {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           className="min-h-[60px]"
+          disabled={addCommentMutation.isPending}
         />
-        <Button type="submit" size="sm" disabled={!content.trim()}>
-          Post Comment
-        </Button>
+        <div className="flex items-center justify-between">
+          <Button
+            type="submit"
+            size="sm"
+            disabled={!content.trim() || addCommentMutation.isPending}
+          >
+            {addCommentMutation.isPending ? "Posting..." : "Post Comment"}
+          </Button>
+          {addCommentMutation.isError && (
+            <p className="text-sm text-red-500">
+              Failed to post comment. Please try again.
+            </p>
+          )}
+        </div>
       </div>
     </form>
   );

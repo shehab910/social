@@ -1,13 +1,14 @@
+import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
-import { Link } from "react-router";
-// import Image from "next/image";
-import type { Comment, Post } from "@/types/post";
+import { Link } from "react-router-dom";
+import type { Post } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,96 +28,43 @@ import {
   Flag,
   UserMinus,
 } from "lucide-react";
-import { useState } from "react";
-import { CommentForm } from "./comment-form";
+import { CommentForm } from "@/components/comment-form";
+import CommentList from "@/components/comment-list";
+import { usePostComments } from "@/hooks/use-comments";
+import { toast } from "sonner";
 
 interface PostCardProps {
   post: Post;
 }
-const mockComments: Comment[] = [
-  {
-    id: "comment1",
-    author: {
-      id: "user2",
-      name: "Alex Johnson",
-      username: "alexj",
-      avatarUrl: "/placeholder.svg?height=32&width=32",
-    },
-    content: "Great post! Thanks for sharing.",
-    createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(), // 15 minutes ago
-  },
-  {
-    id: "comment2",
-    author: {
-      id: "user3",
-      name: "Sam Wilson",
-      username: "samw",
-      avatarUrl: "/placeholder.svg?height=32&width=32",
-    },
-    content: "I couldn't agree more. This is really insightful!",
-    createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 minutes ago
-  },
-];
+
 export default function PostCard({ post }: PostCardProps) {
   const [isCommenting, setIsCommenting] = useState(false);
-  const [localComments, setLocalComments] = useState<Comment[]>(mockComments);
-
-  const handleCommentSubmit = (postId: string, content: string) => {
-    // In a real app, this would be an API call
-    const newComment: Comment = {
-      id: Date.now().toString(),
-      author: {
-        id: "current-user",
-        name: "Current User",
-        username: "currentuser",
-        avatarUrl: "/placeholder.svg?height=32&width=32",
-      },
-      content,
-      createdAt: new Date().toISOString(),
-    };
-    setLocalComments([...localComments, newComment]);
-  };
-  const {
-    id,
-    // author,
-    content,
-    imageUrl,
-    created_at,
-    likes,
-    comments,
-    tags,
-    isLiked,
-    isSaved,
-  } = post;
-  console.log({ post });
-
-  const author = {
-    name: "John Doe",
-    username: "johndoe",
-    avatarUrl: "",
-  };
+  const { data, isLoading: commentsLoading } = usePostComments(
+    isCommenting ? post.id : null
+  );
+  const comments = data?.data;
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-start space-y-0 gap-3 pb-3">
+      <CardHeader className="flex flex-row items-start space-y-0 gap-3">
         <Avatar>
-          <AvatarImage src={author.avatarUrl} alt={author.name} />
-          <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
+          <AvatarImage src={post.user.avatarUrl} alt={post.user.username} />
+          <AvatarFallback>{post.user.username.charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="flex-1 space-y-1">
           <div className="flex items-center justify-between">
             <div>
               <Link
-                to={`/profile/${author.username}`}
+                to={`/profile/${post.user.username}`}
                 className="font-semibold hover:underline"
               >
-                {" "}
-                {/* Use 'to' instead of 'href' */}
-                {author.name}
+                {post.user.username}
               </Link>
               <p className="text-sm text-muted-foreground">
-                @{author.username} ·{" "}
-                {formatDistanceToNow(new Date(created_at), { addSuffix: true })}
+                @{post.user.username} ·{" "}
+                {formatDistanceToNow(new Date(post.created_at), {
+                  addSuffix: true,
+                })}
               </p>
             </div>
             <DropdownMenu>
@@ -127,16 +75,16 @@ export default function PostCard({ post }: PostCardProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => toast.info("Coming soon!")}>
                   <Flag className="mr-2 h-4 w-4" />
                   Report
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => toast.info("Coming soon!")}>
                   <UserMinus className="mr-2 h-4 w-4" />
-                  Unfollow @{author.username}
+                  Unfollow @{post.user.username}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => toast.info("Coming soon!")}>
                   <Share2 className="mr-2 h-4 w-4" />
                   Share post
                 </DropdownMenuItem>
@@ -146,24 +94,23 @@ export default function PostCard({ post }: PostCardProps) {
         </div>
       </CardHeader>
       <CardContent className="pb-3">
-        <p className="whitespace-pre-line">{content}</p>
+        <CardTitle className="text-xl pb-1">{post.title}</CardTitle>
+        <p className="whitespace-pre-line">{post.content}</p>
 
-        {imageUrl && (
+        {post.imageUrl && (
           <div className="mt-3 rounded-md overflow-hidden">
             <img
-              src={imageUrl || "/placeholder.svg"}
+              src={post.imageUrl || "/placeholder.svg"}
               alt="Post image"
-              width={600}
-              height={400}
               className="w-full object-cover"
             />
           </div>
         )}
 
-        {tags && tags.length > 0 && (
+        {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-3">
-            {tags.map((tag) => (
-              <Badge key={tag} variant="secondary">
+            {post.tags.map((tag) => (
+              <Badge key={post.id + tag} variant="secondary">
                 #{tag}
               </Badge>
             ))}
@@ -177,13 +124,16 @@ export default function PostCard({ post }: PostCardProps) {
               variant="ghost"
               size="sm"
               className="flex gap-1.5 items-center"
+              onClick={() => {
+                toast.info("Coming soon!");
+              }}
             >
               <Heart
                 className={`h-4 w-4 ${
-                  isLiked ? "fill-red-500 text-red-500" : ""
+                  post.isLiked ? "fill-red-500 text-red-500" : ""
                 }`}
               />
-              <span>{likes}</span>
+              <span>{post.likes || 0}</span>
             </Button>
             <Button
               variant="ghost"
@@ -192,53 +142,39 @@ export default function PostCard({ post }: PostCardProps) {
               onClick={() => setIsCommenting(!isCommenting)}
             >
               <MessageCircle className="h-4 w-4" />
-              <span>{localComments.length}</span>
+              <span>{post.comments_count}</span>
             </Button>
-            <Button variant="ghost" size="sm">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                toast.info("Coming soon!");
+              }}
+            >
               <Share2 className="h-4 w-4" />
             </Button>
           </div>
-          <Button variant="ghost" size="sm">
-            <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              toast.info("Coming soon!");
+            }}
+          >
+            <Bookmark
+              className={`h-4 w-4 ${post.isSaved ? "fill-current" : ""}`}
+            />
           </Button>
         </div>
+
         {isCommenting && (
           <div className="w-full mt-3 space-y-3">
-            <CommentForm
-              postId={post.id}
-              onCommentSubmit={handleCommentSubmit}
-            />
-            {localComments.map((comment) => (
-              <div key={comment.id} className="flex items-start space-x-2">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage
-                    src={comment.author.avatarUrl}
-                    alt={comment.author.name}
-                  />
-                  <AvatarFallback>
-                    {comment.author.name.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="bg-muted p-2 rounded-md">
-                    <div className="flex items-center justify-between">
-                      <Link
-                        to={`/profile/${comment.author.username}`}
-                        className="font-semibold text-sm hover:underline"
-                      >
-                        {comment.author.name}
-                      </Link>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(comment.createdAt), {
-                          addSuffix: true,
-                        })}
-                      </span>
-                    </div>
-                    <p className="text-sm mt-1">{comment.content}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
+            <CommentForm postId={post.id} />
+            {commentsLoading ? (
+              <div className="text-center py-2">Loading comments...</div>
+            ) : (
+              <CommentList comments={comments || []} />
+            )}
           </div>
         )}
       </CardFooter>

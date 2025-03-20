@@ -1,90 +1,84 @@
-import type React from "react";
-
-import { useState, useEffect } from "react";
-import type { Post } from "@/types/post";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import PostCard from "@/components/post-card";
 import FeedSkeleton from "@/components/feed-skeleton";
 import FeedFilters from "@/components/feed-filters";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, RefreshCw } from "lucide-react";
-import { useSearchParams } from "react-router";
+import { RefreshCw, Search } from "lucide-react";
+import {
+  buildFeedQueryString,
+  parseFeedQueryString,
+  useUserFeed,
+} from "@/hooks/use-posts";
+import { PaginatedFeedQuery } from "@/types";
 
 export default function Feed() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const queryString = location.search;
+  const setQueryString = (newQueryString: string) => {
+    const newUrl = `${location.pathname}?${newQueryString}`;
+    navigate(newUrl, { replace: true });
+  };
 
-  const limit = Number(searchParams.get("limit")) || 10;
-  const offset = Number(searchParams.get("offset")) || 0;
-  const sort = searchParams.get("sort") || "desc";
-  const tags = searchParams.get("tags") || "";
-  const search = searchParams.get("search") || "";
+  const [feedQuery, setFeedQuery] = useState<PaginatedFeedQuery>({
+    limit: "10",
+    offset: "0",
+    sort: "desc",
+  });
+
+  const [feedQueryBuilder, setFeedQueryBuilder] =
+    useState<PaginatedFeedQuery>(feedQuery);
 
   useEffect(() => {
-    fetchFeed();
-  }, [limit, offset, sort, tags, search]);
+    const parsedQuery = parseFeedQueryString(queryString);
+    // using both (feedQuery & feedQueryBuilder) because i want to instantly fetch
+    setFeedQueryBuilder((prev) => ({
+      ...prev,
+      ...parsedQuery,
+    }));
+    setFeedQuery((prev) => ({
+      ...prev,
+      ...parsedQuery,
+    }));
+  }, []);
 
-  const fetchFeed = async () => {
-    setLoading(true);
-    try {
-      // Build query parameters
-      const params = new URLSearchParams();
-      if (limit) params.append("limit", limit.toString());
-      if (offset) params.append("offset", offset.toString());
-      if (sort) params.append("sort", sort);
-      if (tags) params.append("tags", tags);
-      if (search) params.append("search", search);
+  const { isError, error, refetch, isFetching, isLoading, data } =
+    useUserFeed(feedQuery);
+  const posts = data?.data;
 
-      // In a real app, this would be your API endpoint
-      const response = await fetch(
-        `http://localhost:8090/v1/users/feed?${params.toString()}`
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch feed");
-      }
-
-      const { data } = await response.json();
-      // console.log(data);
-      setPosts(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
-      setLoading(false);
-    }
+  const searchQuery = feedQueryBuilder?.search || "";
+  const setSearchQuery = (value: string) => {
+    setFeedQueryBuilder((prev) => {
+      const newFQ = structuredClone(prev);
+      newFQ.search = value;
+      return newFQ;
+    });
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const params = new URLSearchParams(searchParams);
-    if (searchQuery) {
-      params.set("search", searchQuery);
-    } else {
-      params.delete("search");
-    }
-    params.set("offset", "0"); // Reset pagination when searching
-
-    setSearchParams(params);
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault?.();
+    console.log("handle submit is running", feedQueryBuilder);
+    setQueryString(buildFeedQueryString(feedQueryBuilder));
+    setFeedQuery(feedQueryBuilder);
   };
 
-  const handleLoadMore = () => {
-    const params = new URLSearchParams(searchParams);
-    params.set("offset", (offset + limit).toString());
-    setSearchParams(params);
+  const loadMore = () => {
+    // TODO: fix load more
+    setFeedQueryBuilder((prev) => ({
+      ...prev,
+      offset: (prev.offset || "0") + (prev.limit || "10"),
+    }));
   };
 
-  const handleRefresh = () => {
-    fetchFeed();
-  };
-
-  if (error) {
+  if (isError) {
     return (
       <div className="text-center py-10">
-        <p className="text-red-500 mb-4">{error}</p>
-        <Button onClick={fetchFeed}>Try Again</Button>
+        <p className="text-red-500 mb-4">
+          {error instanceof Error ? error.message : "An error occurred"}
+        </p>
+        <Button onClick={() => refetch()}>Try Again</Button>
       </div>
     );
   }
@@ -92,7 +86,7 @@ export default function Feed() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-        <form onSubmit={handleSearch} className="relative w-full md:w-80">
+        <form onSubmit={handleSubmit} className="relative w-full md:w-80">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
@@ -106,21 +100,27 @@ export default function Feed() {
           <Button
             variant="outline"
             size="icon"
-            onClick={handleRefresh}
-            disabled={loading}
+            onClick={() => refetch()}
+            disabled={isFetching}
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
+            />
             <span className="sr-only">Refresh</span>
           </Button>
-          <FeedFilters />
+          <FeedFilters
+            feedQuery={feedQueryBuilder}
+            setFeedQuery={setFeedQueryBuilder}
+            onSubmit={handleSubmit}
+          />
         </div>
       </div>
 
-      {loading && offset === 0 ? (
+      {isLoading ? (
         <FeedSkeleton />
       ) : (
         <>
-          {posts.length === 0 ? (
+          {!posts || posts.length === 0 ? (
             <div className="text-center py-10">
               <p className="text-muted-foreground">No posts found</p>
             </div>
@@ -130,11 +130,11 @@ export default function Feed() {
                 <PostCard key={post.id} post={post} />
               ))}
 
-              {loading && offset > 0 && <FeedSkeleton count={3} />}
+              {isFetching && <FeedSkeleton count={3} />}
 
-              {!loading && posts.length >= limit && (
+              {!isFetching && (
                 <div className="text-center pt-4">
-                  <Button onClick={handleLoadMore}>Load More</Button>
+                  <Button onClick={loadMore}>Load More</Button>
                 </div>
               )}
             </div>

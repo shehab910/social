@@ -12,9 +12,7 @@ func (app *application) getUserFeedHandler(w http.ResponseWriter, r *http.Reques
 		Limit:  20,
 		Offset: 0,
 		Sort:   "desc",
-		Filter: store.FilterQuery{
-			Tags: []string{},
-		},
+		Tags:   []string{},
 	}
 
 	if err := pfq.Parse(r); err != nil {

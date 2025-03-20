@@ -6,18 +6,14 @@ import (
 	"strings"
 )
 
-type FilterQuery struct {
+type PaginatedFeedQuery struct {
+	Limit  int      `json:"limit" validate:"required,gte=1,lte=50"`
+	Offset int      `json:"offset" validate:"gte=0"`
+	Sort   string   `json:"sort" validate:"oneof=asc desc"`
 	Tags   []string `json:"tags" validate:"omitempty"`
-	Search string   `json:"search"`
+	Search string   `json:"search" validate:"omitempty"`
 	Since  string   `json:"since" validate:"omitempty,datetime=2006-01-02T15:04:05Z07:00"`
 	Until  string   `json:"until" validate:"omitempty,datetime=2006-01-02T15:04:05Z07:00"`
-}
-
-type PaginatedFeedQuery struct {
-	Limit  int         `json:"limit" validate:"required,gte=1,lte=50"`
-	Offset int         `json:"offset" validate:"gte=0"`
-	Sort   string      `json:"sort" validate:"oneof=asc desc"`
-	Filter FilterQuery `json:"filter" validate:"omitempty"`
 }
 
 func (fq *PaginatedFeedQuery) Parse(r *http.Request) error {
@@ -48,22 +44,22 @@ func (fq *PaginatedFeedQuery) Parse(r *http.Request) error {
 
 	tags := qs.Get("tags")
 	if tags != "" {
-		fq.Filter.Tags = strings.Split(tags, ",")
+		fq.Tags = strings.Split(tags, ",")
 	}
 
 	search := qs.Get("search")
 	if search != "" {
-		fq.Filter.Search = search
+		fq.Search = search
 	}
 
 	since := qs.Get("since")
 	if since != "" {
-		fq.Filter.Since = since
+		fq.Since = since
 	}
 
 	until := qs.Get("until")
 	if until != "" {
-		fq.Filter.Until = until
+		fq.Until = until
 	}
 
 	return nil

@@ -128,8 +128,8 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userId int64, pfq Paginated
 		LEFT JOIN users u
 		ON p.user_id = u.id
 		JOIN followers f 
-		ON f.follower_id = p.user_id OR p.user_id = $1
-		WHERE f.user_id = $1
+		ON f.user_id = p.user_id OR p.user_id = $1
+		WHERE f.follower_id = $1
 		AND ($2::VARCHAR(100)[] = '{}' OR p.tags @> $2::VARCHAR(100)[])
 		AND ($3 = '' OR p.content ILIKE '%' || $3 || '%' OR p.title ILIKE '%' || $3 || '%')
 		AND ($4 = '' OR p.created_at >= $4::timestamp with time zone)
@@ -145,10 +145,10 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userId int64, pfq Paginated
 		ctx,
 		query,
 		userId,
-		pq.Array(pfq.Filter.Tags),
-		pfq.Filter.Search,
-		parseDbTime(pfq.Filter.Since),
-		parseDbTime(pfq.Filter.Until),
+		pq.Array(pfq.Tags),
+		pfq.Search,
+		parseDbTime(pfq.Since),
+		parseDbTime(pfq.Until),
 		pfq.Limit,
 		pfq.Offset,
 	)

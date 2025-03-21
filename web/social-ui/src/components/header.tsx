@@ -36,6 +36,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
+import { ThemeToggleButton } from "@/components/theme-toggle-button";
 
 export default function Header() {
   const location = useLocation();
@@ -142,6 +143,8 @@ export default function Header() {
           </Button>
 
           <NotificationButton user={user} />
+
+          <ThemeToggleButton />
 
           <UserButton user={user} />
         </div>

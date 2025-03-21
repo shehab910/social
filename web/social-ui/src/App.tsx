@@ -8,6 +8,7 @@ import BookmarksPage from "@/pages/bookmarks";
 import ProfilePage from "@/pages/profile";
 import "@/index.css";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,11 +22,13 @@ const queryClient = new QueryClient({
 function RootLayout() {
   return (
     <>
-      <Header />
-      <main className="container max-w-5xl mx-auto py-6 px-4 md:px-10">
-        <Outlet />
-      </main>
-      <Toaster />
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <Header />
+        <main className="container max-w-5xl mx-auto py-6 px-4 md:px-10">
+          <Outlet />
+        </main>
+        <Toaster />
+      </ThemeProvider>
     </>
   );
 }

@@ -47,7 +47,7 @@ export default function PostCard({ post }: PostCardProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-start space-y-0 gap-3">
-        <Avatar>
+        <Avatar className="my-auto">
           <AvatarImage src={post.user.avatarUrl} alt={post.user.username} />
           <AvatarFallback>{post.user.username.charAt(0)}</AvatarFallback>
         </Avatar>
@@ -106,9 +106,10 @@ export default function PostCard({ post }: PostCardProps) {
             />
           </div>
         )}
-
+      </CardContent>
+      <CardFooter className="flex flex-col items-start">
         {post.tags && post.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-3">
+          <div className="flex flex-wrap gap-2 pb-2">
             {post.tags.map((tag) => (
               <Badge key={post.id + tag} variant="secondary">
                 #{tag}
@@ -116,9 +117,7 @@ export default function PostCard({ post }: PostCardProps) {
             ))}
           </div>
         )}
-      </CardContent>
-      <CardFooter className="flex flex-col items-start">
-        <div className="flex justify-between w-full pb-3 border-b">
+        <div className="flex justify-between w-full">
           <div className="flex gap-4">
             <Button
               variant="ghost"

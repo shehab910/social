@@ -3,9 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import Header from "@/components/header";
 import HomePage from "@/pages/home";
-import ExplorePage from "@/pages/explore";
 import FriendsPage from "@/pages/friends";
-import MessagesPage from "@/pages/messages";
 import BookmarksPage from "@/pages/bookmarks";
 import ProfilePage from "@/pages/profile";
 import "@/index.css";
@@ -24,7 +22,7 @@ function RootLayout() {
   return (
     <>
       <Header />
-      <main className="container mx-auto py-6 px-4 md:px-6">
+      <main className="container max-w-5xl mx-auto py-6 px-4 md:px-10">
         <Outlet />
       </main>
       <Toaster />
@@ -41,18 +39,18 @@ const router = createBrowserRouter([
         index: true,
         element: <HomePage />,
       },
-      {
-        path: "explore",
-        element: <ExplorePage />,
-      },
+      // {
+      //   path: "explore",
+      //   element: <ExplorePage />,
+      // },
       {
         path: "friends",
         element: <FriendsPage />,
       },
-      {
-        path: "messages",
-        element: <MessagesPage />,
-      },
+      // {
+      //   path: "messages",
+      //   element: <MessagesPage />,
+      // },
       {
         path: "bookmarks",
         element: <BookmarksPage />,

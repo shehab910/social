@@ -19,7 +19,7 @@ func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 
 	if err := godotenv.Load(); err != nil {
-		log.Fatal().Msg("Error loading .env file")
+		log.Error().Msg("Error loading .env file")
 	}
 
 	emailCfg := mailer.EmailConfig{
@@ -43,6 +43,7 @@ func main() {
 		addr:                env.GetString("ADDR", "http://localhost:8080"),
 		env:                 env.GetString("ENV", "dev"),
 		clientUrl:           env.GetString("CLIENT_URL", "http://localhost:5173"),
+		serverUrl:           env.GetString("SERVER_URL", "http://localhost:8080"),
 		tokenExpirationMins: env.GetInt("TOKEN_EXPIRATION_MINS", 60*24),
 		jwtSecret:           env.GetString("JWT_SECRET", "jwtSecret"),
 		rateLimiter: ratelimiter.Config{

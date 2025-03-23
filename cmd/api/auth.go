@@ -62,7 +62,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		err := app.mailer.SendWelcomeEmail(mailer.WelcomeEmailTemplateData{
 			Username:     user.Username,
 			Email:        user.Email,
-			WelcomeLink:  app.config.addr + "/login",
+			WelcomeLink:  app.config.serverUrl + "/login",
 			SupportEmail: app.config.email.SupportEmail,
 		})
 		if err != nil {
@@ -121,7 +121,7 @@ func (app *application) loginUserHandler(w http.ResponseWriter, r *http.Request)
 		userNeverLoggedIn := parsedLastSentTokenAt.Time.IsZero()
 
 		if isLastSentTokenExpired || userNeverLoggedIn {
-			verifyUrl := app.config.addr + "/v1/auth/verify/" + token
+			verifyUrl := app.config.serverUrl + "/v1/auth/verify/" + token
 			err := app.mailer.SendVerificationEmail(mailer.VerifyUserEmailTemplateData{
 				Username:         dbUser.Username,
 				Email:            dbUser.Email,

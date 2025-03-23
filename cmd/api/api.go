@@ -26,6 +26,7 @@ type config struct {
 	addr                string
 	env                 string
 	clientUrl           string
+	serverUrl           string
 	tokenExpirationMins int
 	jwtSecret           string
 	rateLimiter         ratelimiter.Config

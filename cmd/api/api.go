@@ -8,7 +8,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/rs/zerolog/log"
-	"github.com/shehab910/social/internal/env"
 	"github.com/shehab910/social/internal/mailer"
 	ratelimiter "github.com/shehab910/social/internal/rate-limiter"
 	"github.com/shehab910/social/internal/store"
@@ -26,6 +25,7 @@ type config struct {
 	email               mailer.EmailConfig
 	addr                string
 	env                 string
+	clientUrl           string
 	tokenExpirationMins int
 	jwtSecret           string
 	rateLimiter         ratelimiter.Config
@@ -48,8 +48,8 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.Timeout(time.Minute))
 
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{env.GetString("CORS_ALLOWED_ORIGIN", "http://127.0.0.1:5173")}, // Use this to allow specific origin hosts
-		// AllowedOrigins: []string{"https://*", "http://*"},
+		// AllowedOrigins: []string{env.GetString("CORS_ALLOWED_ORIGIN", "http://127.0.0.1:5173/*")}, // Use this to allow specific origin hosts
+		AllowedOrigins: []string{"https://*", "http://*"},
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},

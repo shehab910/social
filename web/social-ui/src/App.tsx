@@ -6,9 +6,12 @@ import HomePage from "@/pages/home";
 import FriendsPage from "@/pages/friends";
 import BookmarksPage from "@/pages/bookmarks";
 import ProfilePage from "@/pages/profile";
-import "@/index.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import LoginPage from "@/pages/login";
+import AuthLayout from "@/components/auth-layout";
+import SignupPage from "@/pages/signup";
+import "@/index.css";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,18 +25,31 @@ const queryClient = new QueryClient({
 function RootLayout() {
   return (
     <>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <Header />
-        <main className="container max-w-5xl mx-auto py-6 px-4 md:px-10">
-          <Outlet />
-        </main>
-        <Toaster />
-      </ThemeProvider>
+      <Header />
+      <main className="container max-w-5xl mx-auto py-6 px-4 md:px-10">
+        <Outlet />
+      </main>
     </>
   );
 }
 
 const router = createBrowserRouter([
+  {
+    path: "/login",
+    element: (
+      <AuthLayout>
+        <LoginPage />
+      </AuthLayout>
+    ),
+  },
+  {
+    path: "/signup",
+    element: (
+      <AuthLayout>
+        <SignupPage />
+      </AuthLayout>
+    ),
+  },
   {
     path: "/",
     element: <RootLayout />,
@@ -69,8 +85,11 @@ const router = createBrowserRouter([
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <ReactQueryDevtools initialIsOpen={false} />
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <RouterProvider router={router} />
+        <ReactQueryDevtools initialIsOpen={false} />
+        <Toaster />
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

@@ -40,9 +40,10 @@ func main() {
 	cfg := config{
 		db:                  dbCfg,
 		email:               emailCfg,
-		addr:                env.GetString("ADDR", ":8080"),
+		addr:                env.GetString("ADDR", "http://localhost:8080"),
 		env:                 env.GetString("ENV", "dev"),
-		tokenExpirationMins: env.GetInt("TOKEN_EXPIRATION_MINS", 120),
+		clientUrl:           env.GetString("CLIENT_URL", "http://localhost:5173"),
+		tokenExpirationMins: env.GetInt("TOKEN_EXPIRATION_MINS", 60*24),
 		jwtSecret:           env.GetString("JWT_SECRET", "jwtSecret"),
 		rateLimiter: ratelimiter.Config{
 			RequestsPerTimeFrame: env.GetInt("RATE_LIMITER_REQUESTS_PER_TIME_FRAME", 100),

@@ -26,8 +26,13 @@ func (app *application) internalServerError(w http.ResponseWriter, r *http.Reque
 func (app *application) badRequestError(w http.ResponseWriter, r *http.Request, err error) {
 	log.Warn().Err(err).Str("path", r.URL.Path).Str("method", r.Method).Msg("bad request error")
 
-	// Passing validation errors to user
-	writeJSONErr(w, http.StatusBadRequest, err.Error())
+	writeJSONErr(w, http.StatusBadRequest, "bad request")
+}
+
+func (app *application) unProcessableContent(w http.ResponseWriter, r *http.Request, err error) {
+	log.Warn().Err(err).Str("path", r.URL.Path).Str("method", r.Method).Msg("unprocessable content error")
+
+	writeJSONErr(w, http.StatusUnprocessableEntity, err.Error())
 }
 
 func (app *application) conflictResponse(w http.ResponseWriter, r *http.Request, err error) {

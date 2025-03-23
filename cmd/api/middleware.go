@@ -36,13 +36,13 @@ func (app *application) AuthenticateMiddleware(next http.Handler) http.Handler {
 		}
 
 		if isVerified, ok := claims["is_verified"].(bool); !isVerified || !ok {
-			app.jsonResponse(w, http.StatusUnauthorized, map[string]string{"error": "Please login again and verify your email"})
+			app.jsonResponse(w, http.StatusUnauthorized, map[string]string{"error": "Please login again and if not verified, verify your email"})
 			return
 		}
 
 		userId, ok := claims["userId"].(float64)
 		if !ok {
-			app.jsonResponse(w, http.StatusUnauthorized, map[string]string{"error": "Please login again and verify your email"})
+			app.jsonResponse(w, http.StatusUnauthorized, map[string]string{"error": "Please login again and if not verified, verify your email"})
 			return
 		}
 

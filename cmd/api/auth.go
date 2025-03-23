@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -33,7 +32,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	if err := Validate.Struct(payload); err != nil {
-		app.badRequestError(w, r, err)
+		app.unProcessableContent(w, r, err)
 		return
 	}
 
@@ -63,7 +62,7 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		err := app.mailer.SendWelcomeEmail(mailer.WelcomeEmailTemplateData{
 			Username:     user.Username,
 			Email:        user.Email,
-			WelcomeLink:  "http://localhost:3000/login",
+			WelcomeLink:  app.config.addr + "/login",
 			SupportEmail: app.config.email.SupportEmail,
 		})
 		if err != nil {
@@ -82,7 +81,7 @@ func (app *application) loginUserHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := Validate.Struct(payload); err != nil {
-		app.badRequestError(w, r, err)
+		app.unProcessableContent(w, r, err)
 		return
 	}
 
@@ -121,7 +120,7 @@ func (app *application) loginUserHandler(w http.ResponseWriter, r *http.Request)
 		userNeverLoggedIn := parsedLastSentTokenAt.Time.IsZero()
 
 		if isLastSentTokenExpired || userNeverLoggedIn {
-			verifyUrl := "http://localhost:" + strings.Split(app.config.addr, ":")[1] + "/v1/auth/verify/" + token
+			verifyUrl := app.config.addr + "/v1/auth/verify/" + token
 			err := app.mailer.SendVerificationEmail(mailer.VerifyUserEmailTemplateData{
 				Username:         dbUser.Username,
 				Email:            dbUser.Email,
@@ -138,7 +137,7 @@ func (app *application) loginUserHandler(w http.ResponseWriter, r *http.Request)
 				return
 			}
 		}
-		app.customErrorResponse(w, r, http.StatusUnauthorized, errors.New("user not verified, verification email sent"))
+		app.customErrorResponse(w, r, http.StatusForbidden, errors.New("user not verified, verification email sent"))
 		return
 	}
 

@@ -1,23 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link, useLocation, useRouteLoaderData } from "react-router-dom";
 import {
   Bell,
   Home,
-  Search,
   Users,
   Bookmark,
   PlusSquare,
   Menu,
-  X,
   Settings,
   LogOut,
   UserIcon,
   LogInIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -159,55 +156,55 @@ export default function Header() {
   );
 }
 
-function SearchInput() {
-  const [showMobileSearch, setShowMobileSearch] = useState(false);
+// function SearchInput() {
+//   const [showMobileSearch, setShowMobileSearch] = useState(false);
 
-  return (
-    <>
-      {/* Desktop Search */}
-      <div className="hidden md:flex w-full max-w-sm items-center space-x-2 mr-4">
-        <div className="relative w-full">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search..."
-            className="pl-8 w-full"
-          />
-        </div>
-      </div>
+//   return (
+//     <>
+//       {/* Desktop Search */}
+//       <div className="hidden md:flex w-full max-w-sm items-center space-x-2 mr-4">
+//         <div className="relative w-full">
+//           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+//           <Input
+//             type="search"
+//             placeholder="Search..."
+//             className="pl-8 w-full"
+//           />
+//         </div>
+//       </div>
 
-      {/* Mobile Search Toggle */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="md:hidden"
-        onClick={() => setShowMobileSearch(!showMobileSearch)}
-      >
-        {showMobileSearch ? (
-          <X className="h-5 w-5" />
-        ) : (
-          <Search className="h-5 w-5" />
-        )}
-        <span className="sr-only">Toggle search</span>
-      </Button>
+//       {/* Mobile Search Toggle */}
+//       <Button
+//         variant="ghost"
+//         size="icon"
+//         className="md:hidden"
+//         onClick={() => setShowMobileSearch(!showMobileSearch)}
+//       >
+//         {showMobileSearch ? (
+//           <X className="h-5 w-5" />
+//         ) : (
+//           <Search className="h-5 w-5" />
+//         )}
+//         <span className="sr-only">Toggle search</span>
+//       </Button>
 
-      {/* Mobile Search Bar (Expandable) */}
-      {showMobileSearch && (
-        <div className="container py-2 md:hidden">
-          <div className="relative w-full">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search..."
-              className="pl-8 w-full"
-              autoFocus
-            />
-          </div>
-        </div>
-      )}
-    </>
-  );
-}
+//       {/* Mobile Search Bar (Expandable) */}
+//       {showMobileSearch && (
+//         <div className="container py-2 md:hidden">
+//           <div className="relative w-full">
+//             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+//             <Input
+//               type="search"
+//               placeholder="Search..."
+//               className="pl-8 w-full"
+//               autoFocus
+//             />
+//           </div>
+//         </div>
+//       )}
+//     </>
+//   );
+// }
 
 function NotificationButton({
   notificationCount,

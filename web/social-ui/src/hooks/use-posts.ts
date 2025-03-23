@@ -52,7 +52,7 @@ export const useUserFeed = (query: PaginatedFeedQuery) => {
     queryKey: ["feed", query],
     queryFn: async () => {
       const queryString = buildFeedQueryString(query);
-      console.log({ queryString });
+
       const { data } = await apiClient.get<Envelope<Post[]>>(
         `/users/feed?${queryString}`
       );

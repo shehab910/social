@@ -1,6 +1,6 @@
-CREATE DATABASE social
+CREATE DATABASE IF NOT EXISTS social;
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS social.users (
     id BIGSERIAL PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP(0) with time zone NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS posts (
+CREATE TABLE IF NOT EXISTS social.posts (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     title VARCHAR(255) NOT NULL,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS posts (
 
 ALTER TABLE posts ADD FOREIGN KEY (user_id) REFERENCES users(id);
 
-CREATE TABLE IF NOT EXISTS comments (
+CREATE TABLE IF NOT EXISTS social.comments (
     id BIGSERIAL PRIMARY KEY,
     post_id BIGSERIAL NOT NULL,
     user_id BIGSERIAL NOT NULL,
@@ -35,10 +35,10 @@ CREATE TABLE IF NOT EXISTS comments (
     updated_at TIMESTAMP(0) with time zone NOT NULL DEFAULT NOW()
 );
 
-ALTER TABLE comments ADD FOREIGN KEY (post_id) REFERENCES posts(id);
-ALTER TABLE comments ADD FOREIGN KEY (user_id) REFERENCES users(id);
+ALTER TABLE social.comments ADD FOREIGN KEY (post_id) REFERENCES posts(id);
+ALTER TABLE social.comments ADD FOREIGN KEY (user_id) REFERENCES users(id);
 
-CREATE TABLE IF NOT EXISTS followers(
+CREATE TABLE IF NOT EXISTS social.followers(
     user_id BIGINT NOT NULL,
     follower_id BIGINT NOT NULL,
     created_at TIMESTAMP(0) with time zone NOT NULL DEFAULT NOW(),

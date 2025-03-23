@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useMemo, useState } from "react";
+import { Link, useLocation, useRouteLoaderData } from "react-router-dom";
 import {
   Bell,
   Home,
@@ -14,6 +14,7 @@ import {
   Settings,
   LogOut,
   UserIcon,
+  LogInIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,17 +38,23 @@ import {
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
+import { logout, parseJWT } from "@/utils/auth";
+import IconButton from "./ui/icon-button";
 
 export default function Header() {
   const location = useLocation();
+  const token = useRouteLoaderData("root");
 
-  // Mock user data - in a real app, this would come from authentication
-  const user = {
-    name: "Jane Smith",
-    username: "janesmith",
-    avatarUrl: "/placeholder.svg?height=40&width=40",
-    notificationCount: 3,
-  };
+  const user = useMemo(() => {
+    if (!token) return null;
+    const user = parseJWT(token);
+    return {
+      name: user.username,
+      username: user.email,
+      // avatarUrl: `/placeholder.svg?height=40&width=40`,
+      notificationCount: 2,
+    };
+  }, [token]);
 
   const navItems = [
     { name: "Home", href: "/", icon: Home },
@@ -132,21 +139,20 @@ export default function Header() {
           {/* TODO: implement global search */}
           {/* <SearchInput /> */}
 
-          {/* Create Post Button */}
-          <Button size="sm" className="hidden md:flex">
-            <PlusSquare className="h-4 w-4" />
-            <span>Create</span>
-          </Button>
-          <Button size="icon" variant="default" className="md:hidden">
-            <PlusSquare className="h-5 w-5" />
-            <span className="sr-only">Create post</span>
-          </Button>
+          <IconButton Icon={PlusSquare} text="Create" />
 
-          <NotificationButton user={user} />
+          <NotificationButton
+            notificationCount={user?.notificationCount || 0}
+          />
 
           <ThemeToggleButton />
 
-          <UserButton user={user} />
+          {token && <UserButton user={user as Extract<typeof user, "null">} />}
+          {!token && (
+            <Link to="/login">
+              <IconButton Icon={LogInIcon} text="Login" />
+            </Link>
+          )}
         </div>
       </div>
     </header>
@@ -203,7 +209,11 @@ function SearchInput() {
   );
 }
 
-function NotificationButton({ user }: { user: { notificationCount: number } }) {
+function NotificationButton({
+  notificationCount,
+}: {
+  notificationCount: number;
+}) {
   return (
     <>
       <DropdownMenu>
@@ -218,9 +228,9 @@ function NotificationButton({ user }: { user: { notificationCount: number } }) {
           className="relative"
         >
           <Bell className="h-5 w-5" />
-          {user.notificationCount > 0 && (
+          {notificationCount > 0 && (
             <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
-              {user.notificationCount}
+              {notificationCount}
             </span>
           )}
           <span className="sr-only">Notifications</span>
@@ -306,7 +316,7 @@ function UserButton({
         <Button variant="ghost" size="icon" className="rounded-full">
           <Avatar className="h-8 w-8">
             <AvatarImage src={user.avatarUrl} alt={user.name} />
-            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+            <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
           <span className="sr-only">User menu</span>
         </Button>
@@ -316,7 +326,7 @@ function UserButton({
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none">{user.name}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              @{user.username}
+              {user.username}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -337,7 +347,7 @@ function UserButton({
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onSelect={logout}>
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>

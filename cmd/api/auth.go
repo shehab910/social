@@ -101,6 +101,7 @@ func (app *application) loginUserHandler(w http.ResponseWriter, r *http.Request)
 	}
 
 	token, err := utils.GenerateToken(
+		dbUser.Username,
 		dbUser.Email,
 		dbUser.ID,
 		dbUser.Role,

@@ -12,6 +12,7 @@ import LoginPage from "@/pages/login";
 import AuthLayout from "@/components/auth-layout";
 import SignupPage from "@/pages/signup";
 import "@/index.css";
+import { checkAuthLoader, tokenLoader } from "./utils/auth";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,7 +34,7 @@ function RootLayout() {
   );
 }
 
-const router = createBrowserRouter([
+export const router = createBrowserRouter([
   {
     path: "/login",
     element: (
@@ -51,12 +52,15 @@ const router = createBrowserRouter([
     ),
   },
   {
+    id: "root",
     path: "/",
+    loader: tokenLoader,
     element: <RootLayout />,
     children: [
       {
         index: true,
         element: <HomePage />,
+        loader: checkAuthLoader,
       },
       // {
       //   path: "explore",
@@ -65,18 +69,22 @@ const router = createBrowserRouter([
       {
         path: "friends",
         element: <FriendsPage />,
+        loader: checkAuthLoader,
       },
       // {
       //   path: "messages",
       //   element: <MessagesPage />,
+      // loader: checkAuthLoader,
       // },
       {
         path: "bookmarks",
         element: <BookmarksPage />,
+        loader: checkAuthLoader,
       },
       {
         path: "profile/:username",
         element: <ProfilePage />,
+        loader: checkAuthLoader,
       },
     ],
   },

@@ -14,7 +14,6 @@ import (
 	"github.com/shehab910/social/internal/store"
 )
 
-// trigger build
 const version = "v0.0.1"
 
 func main() {
@@ -37,6 +36,7 @@ func main() {
 		maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),
 		maxIdleConns: env.GetInt("DB_MAX_IDLE_CONNS", 30),
 		maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15m"),
+		schemaName:   env.GetString("DB_SCHEMA_NAME", "social"),
 	}
 
 	getAddr := func() string {
@@ -72,6 +72,7 @@ func main() {
 		cfg.db.maxOpenConns,
 		cfg.db.maxIdleConns,
 		cfg.db.maxIdleTime,
+		cfg.db.schemaName,
 	)
 	if err != nil {
 		log.Panic().Err(err).Msg("Couldn't connect to db\n")

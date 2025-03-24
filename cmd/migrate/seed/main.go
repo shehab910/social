@@ -9,7 +9,7 @@ import (
 
 func main() {
 	addr := env.GetString("DB_ADDR", "postgres://postgres:root@localhost/social?sslmode=disable")
-	conn, err := db.New(addr, 3, 3, "15m")
+	conn, err := db.New(addr, 3, 3, "15m", "social")
 	if err != nil {
 		log.Fatal().Err(err).Msg("Couldn't connect to db")
 	}

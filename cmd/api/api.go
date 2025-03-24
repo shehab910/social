@@ -18,6 +18,7 @@ type dbConfig struct {
 	maxOpenConns int
 	maxIdleConns int
 	maxIdleTime  string
+	schemaName   string
 }
 
 type config struct {

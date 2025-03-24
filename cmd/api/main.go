@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -37,10 +38,22 @@ func main() {
 		maxIdleTime:  env.GetString("DB_MAX_IDLE_TIME", "15m"),
 	}
 
+	getAddr := func() string {
+		// get port from PORT first and fall back to addr
+		port := env.GetString("PORT", "")
+		addr := env.GetString("ADDR", "http://localhost:8080")
+		if port == "" {
+			return addr
+		}
+		splitAddr := strings.Split(addr, ":")
+		return splitAddr[0] + ":" + port
+
+	}
+
 	cfg := config{
 		db:                  dbCfg,
 		email:               emailCfg,
-		addr:                env.GetString("ADDR", "http://localhost:8080"),
+		addr:                getAddr(),
 		env:                 env.GetString("ENV", "dev"),
 		clientUrl:           env.GetString("CLIENT_URL", "http://localhost:5173"),
 		serverUrl:           env.GetString("SERVER_URL", "http://localhost:8080"),

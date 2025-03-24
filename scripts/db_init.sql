@@ -21,10 +21,10 @@ CREATE TABLE IF NOT EXISTS social.posts (
     content TEXT NOT NULL,
     tags VARCHAR(100) [],
     created_at TIMESTAMP(0) with time zone NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP(0) with time zone NOT NULL DEFAULT NOW()
-);
+    updated_at TIMESTAMP(0) with time zone NOT NULL DEFAULT NOW(),
 
-ALTER TABLE posts ADD FOREIGN KEY (user_id) REFERENCES users(id);
+    FOREIGN KEY (user_id) REFERENCES social.users(id)
+);
 
 CREATE TABLE IF NOT EXISTS social.comments (
     id BIGSERIAL PRIMARY KEY,
@@ -32,11 +32,11 @@ CREATE TABLE IF NOT EXISTS social.comments (
     user_id BIGSERIAL NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP(0) with time zone NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP(0) with time zone NOT NULL DEFAULT NOW()
-);
+    updated_at TIMESTAMP(0) with time zone NOT NULL DEFAULT NOW(),
 
-ALTER TABLE social.comments ADD FOREIGN KEY (post_id) REFERENCES posts(id);
-ALTER TABLE social.comments ADD FOREIGN KEY (user_id) REFERENCES users(id);
+    FOREIGN KEY (post_id) REFERENCES social.posts(id),
+    FOREIGN KEY (user_id) REFERENCES social.users(id)
+);
 
 CREATE TABLE IF NOT EXISTS social.followers(
     user_id BIGINT NOT NULL,
@@ -44,6 +44,6 @@ CREATE TABLE IF NOT EXISTS social.followers(
     created_at TIMESTAMP(0) with time zone NOT NULL DEFAULT NOW(),
 
     PRIMARY KEY (user_id, follower_id),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES social.users(id) ON DELETE CASCADE,
+    FOREIGN KEY (follower_id) REFERENCES social.users(id) ON DELETE CASCADE
 );

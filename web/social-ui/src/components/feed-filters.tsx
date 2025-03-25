@@ -16,8 +16,6 @@ import { TagInput } from "@/components/tag-input";
 import { PaginatedFeedQuery } from "@/types";
 import { useCallback, useEffect, useState } from "react";
 
-//TODO: fix: tags are case sensitive
-
 type FeedFiltersProps = {
   feedQuery: PaginatedFeedQuery;
   setFeedQuery: React.Dispatch<React.SetStateAction<PaginatedFeedQuery>>;

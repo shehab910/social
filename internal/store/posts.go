@@ -130,7 +130,11 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userId int64, pfq Paginated
 		JOIN followers f 
 		ON f.user_id = p.user_id OR p.user_id = $1
 		WHERE f.follower_id = $1
-		AND ($2 = '{}' OR p.tags @> $2::text[])
+		AND ($2 = '{}' OR EXISTS (
+			SELECT 1 
+			FROM unnest($2::text[]) AS search_tag 
+			WHERE p.tags::text ILIKE '%' || search_tag || '%'
+		))
 		AND ($3 = '' OR p.content ILIKE '%' || $3 || '%' OR p.title ILIKE '%' || $3 || '%')
 		AND ($4 = '' OR p.created_at >= $4::timestamp with time zone)
 		AND ($5 = '' OR p.created_at <= $5::timestamp with time zone)
@@ -189,7 +193,11 @@ func (s *PostStore) GetExploreFeed(ctx context.Context, userId int64, pfq Pagina
 		ON c.post_id = p.id
 		LEFT JOIN users u
 		ON p.user_id = u.id
-		WHERE ($1 = '{}' OR p.tags @> $1::text[])
+		WHERE ($1 = '{}' OR EXISTS (
+			SELECT 1 
+			FROM unnest($1::text[]) AS search_tag 
+			WHERE p.tags::text ILIKE '%' || search_tag || '%'
+		))
 		AND ($2 = '' OR p.content ILIKE '%' || $2 || '%' OR p.title ILIKE '%' || $2 || '%')
 		AND ($3 = '' OR p.created_at >= $3::timestamp with time zone)
 		AND ($4 = '' OR p.created_at <= $4::timestamp with time zone)

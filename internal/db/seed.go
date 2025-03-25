@@ -77,7 +77,7 @@ var comments = []string{
 func Seed(store *store.Storage, db *sql.DB) {
 	ctx := context.Background()
 
-	users := generateUsers(100)
+	users := generateUsers(10)
 	tx, _ := db.BeginTx(ctx, nil)
 
 	for _, user := range users {
@@ -90,7 +90,7 @@ func Seed(store *store.Storage, db *sql.DB) {
 
 	tx.Commit()
 
-	posts := generatePosts(200, users)
+	posts := generatePosts(20, users)
 	for _, post := range posts {
 		if err := store.Posts.Create(ctx, post); err != nil {
 			log.Err(err).Msg("Error creating post")
@@ -98,7 +98,7 @@ func Seed(store *store.Storage, db *sql.DB) {
 		}
 	}
 
-	comments := generateComments(500, users, posts)
+	comments := generateComments(50, users, posts)
 	for _, comment := range comments {
 		if err := store.Comments.Create(ctx, comment); err != nil {
 			log.Err(err).Msg("Error creating comment")

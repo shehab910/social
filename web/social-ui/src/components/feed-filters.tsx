@@ -12,13 +12,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SlidersHorizontal, X } from "lucide-react";
-import { TagInput } from "./tag-input";
+import { TagInput } from "@/components/tag-input";
 import { PaginatedFeedQuery } from "@/types";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 //TODO: fix: tags are case sensitive
-
-//TODO: ISSUE: clearing tags from outside the select component doesn't update the feed
 
 type FeedFiltersProps = {
   feedQuery: PaginatedFeedQuery;
@@ -31,6 +29,36 @@ export default function FeedFilters({
   onSubmit,
 }: FeedFiltersProps) {
   const [open, setOpen] = useState(false);
+  const [tagAction, setTagAction] = useState<"remove" | "clear" | null>(null);
+
+  useEffect(() => {
+    if (tagAction) {
+      onSubmit?.();
+      setTagAction(null);
+    }
+  }, [tagAction, onSubmit]);
+
+  const removeTag = useCallback(
+    (tag: string) => {
+      setFeedQuery((prev) => {
+        const newFQ = structuredClone(prev);
+        if (!newFQ.tags) return prev;
+        newFQ.tags = newFQ.tags.filter((t) => t !== tag);
+        return newFQ;
+      });
+      setTagAction("remove");
+    },
+    [setFeedQuery]
+  );
+
+  const clearAllTags = useCallback(() => {
+    setFeedQuery((prev) => {
+      const newFQ = structuredClone(prev);
+      newFQ.tags = [];
+      return newFQ;
+    });
+    setTagAction("clear");
+  }, [setFeedQuery]);
 
   const onFilterOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
@@ -40,29 +68,18 @@ export default function FeedFilters({
   };
 
   const selectedTags = feedQuery?.tags || [];
-  const addTag = (tag: string) => {
-    setFeedQuery((prev) => {
-      const newFQ = structuredClone(prev);
-      if (!newFQ.tags) newFQ.tags = [];
-      newFQ.tags.push(tag);
-      return newFQ;
-    });
-  };
-  const removeTag = (tag: string) => {
-    setFeedQuery((prev) => {
-      const newFQ = structuredClone(prev);
-      if (!newFQ.tags) return prev; // should never happen but to make TS happy
-      newFQ.tags = newFQ.tags.filter((t) => t !== tag);
-      return newFQ;
-    });
-  };
-  const clearAllTags = () => {
-    setFeedQuery((prev) => {
-      const newFQ = structuredClone(prev);
-      newFQ.tags = [];
-      return newFQ;
-    });
-  };
+
+  const addTag = useCallback(
+    (tag: string) => {
+      setFeedQuery((prev) => {
+        const newFQ = structuredClone(prev);
+        if (!newFQ.tags) newFQ.tags = [];
+        newFQ.tags.push(tag);
+        return newFQ;
+      });
+    },
+    [setFeedQuery]
+  );
 
   const sort = feedQuery.sort;
   const setSort = (newSort: string) => {
@@ -86,10 +103,7 @@ export default function FeedFilters({
             >
               #{tag}
               <button
-                onClick={() => {
-                  removeTag(tag);
-                  onSubmit?.();
-                }}
+                onClick={() => removeTag(tag)}
                 className="ml-1 rounded-full hover:bg-muted p-0.5"
               >
                 <X className="h-3 w-3" />
@@ -102,10 +116,7 @@ export default function FeedFilters({
             variant="ghost"
             size="sm"
             className="h-6 px-2 text-xs"
-            onClick={() => {
-              clearAllTags();
-              onSubmit?.();
-            }}
+            onClick={clearAllTags}
           >
             Clear
           </Button>

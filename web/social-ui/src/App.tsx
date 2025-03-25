@@ -11,8 +11,9 @@ import { ThemeProvider } from "@/components/theme-provider";
 import LoginPage from "@/pages/login";
 import AuthLayout from "@/components/auth-layout";
 import SignupPage from "@/pages/signup";
+import { checkAuthLoader, tokenLoader } from "@/utils/auth";
+import ExplorePage from "@/pages/explore";
 import "@/index.css";
-import { checkAuthLoader, tokenLoader } from "./utils/auth";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,13 +29,15 @@ function RootLayout() {
     <>
       <Header />
       <main className="container max-w-5xl mx-auto py-6 px-4 md:px-10">
-        <Outlet />
+        <div className="max-w-3xl mx-auto">
+          <Outlet />
+        </div>
       </main>
     </>
   );
 }
 
-export const router = createBrowserRouter([
+const router = createBrowserRouter([
   {
     path: "/login",
     element: (
@@ -62,10 +65,10 @@ export const router = createBrowserRouter([
         element: <HomePage />,
         loader: checkAuthLoader,
       },
-      // {
-      //   path: "explore",
-      //   element: <ExplorePage />,
-      // },
+      {
+        path: "explore",
+        element: <ExplorePage />,
+      },
       {
         path: "friends",
         element: <FriendsPage />,

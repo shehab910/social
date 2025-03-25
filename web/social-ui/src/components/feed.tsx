@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import PostCard from "@/components/post-card";
 import FeedSkeleton from "@/components/feed-skeleton";
 import FeedFilters from "@/components/feed-filters";
@@ -122,7 +122,14 @@ export default function Feed() {
         <>
           {!posts || posts.length === 0 ? (
             <div className="text-center py-10">
-              <p className="text-muted-foreground">No posts found</p>
+              <p className="text-muted-foreground">
+                No posts found. Follow new users from{" "}
+                <Link to="/explore">
+                  <Button variant="link" className="p-0 m-0">
+                    Explore
+                  </Button>
+                </Link>
+              </p>
             </div>
           ) : (
             <div className="space-y-4">

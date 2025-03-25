@@ -1,9 +1,8 @@
-import { router } from "@/App";
-import { toast } from "sonner";
+import { redirect } from "react-router-dom";
 
 export function logout() {
   localStorage.removeItem("token");
-  router.navigate("/login");
+  return redirect("/login");
 }
 
 export function tokenLoader() {
@@ -32,8 +31,6 @@ export function parseJWT(token: string): {
 
 export function checkAuthLoader() {
   if (!tokenLoader()) {
-    toast.error("You need to be logged in to view this page");
-    // TODO: FIX Cyclic
-    // router.navigate("/login");
+    return redirect("/login");
   }
 }

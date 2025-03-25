@@ -13,6 +13,7 @@ import {
   LogOut,
   UserIcon,
   LogInIcon,
+  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -55,7 +56,7 @@ export default function Header() {
 
   const navItems = [
     { name: "Home", href: "/", icon: Home },
-    // { name: "Explore", href: "/explore", icon: Search },
+    { name: "Explore", href: "/explore", icon: Search },
     { name: "Friends", href: "/friends", icon: Users },
     // { name: "Messages", href: "/messages", icon: MessageSquare, badge: 2 },
     { name: "Bookmarks", href: "/bookmarks", icon: Bookmark },
@@ -321,7 +322,9 @@ function UserButton({
       <DropdownMenuContent align="end">
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
+            <p className="text-sm font-medium leading-none capitalize">
+              {user.name}
+            </p>
             <p className="text-xs leading-none text-muted-foreground">
               {user.username}
             </p>

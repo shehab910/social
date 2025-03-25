@@ -1,22 +1,37 @@
-import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import PostCard from "@/components/post-card";
 import FeedSkeleton from "@/components/feed-skeleton";
 import FeedFilters from "@/components/feed-filters";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RefreshCw, Search } from "lucide-react";
-import {
-  buildFeedQueryString,
-  parseFeedQueryString,
-  useUserFeed,
-} from "@/hooks/use-posts";
-import { PaginatedFeedQuery } from "@/types";
+import { Envelope, PaginatedFeedQuery, Post } from "@/types";
+import { UseQueryResult } from "@tanstack/react-query";
 
-export default function Feed() {
+type FeedItem = Post;
+
+type GenericFeedProps = {
+  useFeedQuery: (
+    query: PaginatedFeedQuery
+  ) => UseQueryResult<Envelope<FeedItem[]>>;
+  queryStringParser: (queryString: string) => Partial<PaginatedFeedQuery>;
+  queryStringBuilder: (query: PaginatedFeedQuery) => string;
+  emptyStateMessage?: React.ReactNode;
+  renderPost?: (post: Post) => React.ReactNode;
+};
+
+export function GenericFeed({
+  useFeedQuery,
+  queryStringParser,
+  queryStringBuilder,
+  emptyStateMessage,
+  renderPost = (post) => <PostCard key={post.id} post={post} />,
+}: GenericFeedProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const queryString = location.search;
+
   const setQueryString = (newQueryString: string) => {
     const newUrl = `${location.pathname}?${newQueryString}`;
     navigate(newUrl, { replace: true });
@@ -32,8 +47,8 @@ export default function Feed() {
     useState<PaginatedFeedQuery>(feedQuery);
 
   useEffect(() => {
-    const parsedQuery = parseFeedQueryString(queryString);
-    // using both (feedQuery & feedQueryBuilder) because i want to instantly fetch
+    const parsedQuery = queryStringParser(queryString);
+    // Update both states to ensure immediate fetching
     setFeedQueryBuilder((prev) => ({
       ...prev,
       ...parsedQuery,
@@ -42,11 +57,12 @@ export default function Feed() {
       ...prev,
       ...parsedQuery,
     }));
-  }, []);
+  }, [queryString, queryStringParser]);
 
   const { isError, error, refetch, isFetching, isLoading, data } =
-    useUserFeed(feedQuery);
-  const posts = data?.data;
+    useFeedQuery(feedQuery);
+
+  const items = data?.data;
 
   const searchQuery = feedQueryBuilder?.search || "";
   const setSearchQuery = (value: string) => {
@@ -59,16 +75,14 @@ export default function Feed() {
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault?.();
-    console.log("handle submit is running", feedQueryBuilder);
-    setQueryString(buildFeedQueryString(feedQueryBuilder));
+    setQueryString(queryStringBuilder(feedQueryBuilder));
     setFeedQuery(feedQueryBuilder);
   };
 
   const loadMore = () => {
-    // TODO: fix load more
     setFeedQueryBuilder((prev) => ({
       ...prev,
-      offset: (prev.offset || "0") + (prev.limit || "10"),
+      offset: String(Number(prev.offset || "0") + Number(prev.limit || "10")),
     }));
   };
 
@@ -120,22 +134,15 @@ export default function Feed() {
         <FeedSkeleton />
       ) : (
         <>
-          {!posts || posts.length === 0 ? (
+          {!items || items.length === 0 ? (
             <div className="text-center py-10">
               <p className="text-muted-foreground">
-                No posts found. Follow new users from{" "}
-                <Link to="/explore">
-                  <Button variant="link" className="p-0 m-0">
-                    Explore
-                  </Button>
-                </Link>
+                {emptyStateMessage || "No posts found."}
               </p>
             </div>
           ) : (
             <div className="space-y-4">
-              {posts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
+              {items.map((item) => renderPost(item))}
 
               {isFetching && <FeedSkeleton count={3} />}
 

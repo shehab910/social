@@ -61,6 +61,20 @@ export const useUserFeed = (query: PaginatedFeedQuery) => {
   });
 };
 
+export const useExploreFeed = (query: PaginatedFeedQuery) => {
+  return useQuery({
+    queryKey: ["feed", query],
+    queryFn: async () => {
+      const queryString = buildFeedQueryString(query);
+
+      const { data } = await apiClient.get<Envelope<Post[]>>(
+        `/users/explore?${queryString}`
+      );
+      return data;
+    },
+  });
+};
+
 export const usePost = (postId: number | null) => {
   return useQuery({
     queryKey: ["post", postId],

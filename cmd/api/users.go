@@ -49,7 +49,7 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := app.store.Followers.Follow(r.Context(), followerUser.ID, payload.UserID); err != nil {
+	if err := app.store.Followers.Follow(r.Context(), payload.UserID, followerUser.ID); err != nil {
 		if errors.Is(err, store.ErrConflict) {
 			app.conflictResponse(w, r, err)
 			return
@@ -78,7 +78,7 @@ func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := app.store.Followers.Unfollow(r.Context(), followerUser.ID, payload.UserID); err != nil {
+	if err := app.store.Followers.Unfollow(r.Context(), payload.UserID, followerUser.ID); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}

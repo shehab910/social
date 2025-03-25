@@ -189,7 +189,7 @@ func (s *PostStore) GetExploreFeed(ctx context.Context, userId int64, pfq Pagina
 		ON c.post_id = p.id
 		LEFT JOIN users u
 		ON p.user_id = u.id
-		AND ($1 = '{}' OR p.tags @> $1::text[])
+		WHERE ($1 = '{}' OR p.tags @> $1::text[])
 		AND ($2 = '' OR p.content ILIKE '%' || $2 || '%' OR p.title ILIKE '%' || $2 || '%')
 		AND ($3 = '' OR p.created_at >= $3::timestamp with time zone)
 		AND ($4 = '' OR p.created_at <= $4::timestamp with time zone)

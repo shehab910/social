@@ -118,7 +118,7 @@ func (s *PostStore) Update(ctx context.Context, post *Post) error {
 	return nil
 }
 
-// pfq must be validated / sanitized before calling this function
+// pfq.Sort must be validated / sanitized before calling this function
 func (s *PostStore) GetUserFeed(ctx context.Context, userId int64, pfq PaginatedFeedQuery) ([]PostWithMeta, error) {
 	query := `
 		SELECT p.id, p.content, p.title, p.user_id, p.tags, p.created_at, p.updated_at, COUNT(c.id), u.username
@@ -145,6 +145,64 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userId int64, pfq Paginated
 		ctx,
 		query,
 		userId,
+		pq.Array(pfq.Tags),
+		pfq.Search,
+		parseDbTime(pfq.Since),
+		parseDbTime(pfq.Until),
+		pfq.Limit,
+		pfq.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var p PostWithMeta
+
+		err := rows.Scan(
+			&p.ID,
+			&p.Content,
+			&p.Title,
+			&p.User.ID,
+			pq.Array(&p.Tags),
+			&p.CreatedAt,
+			&p.UpdatedAt,
+			&p.CommentCount,
+			&p.User.Username,
+		)
+		if err != nil {
+			return nil, err
+		}
+		postsWithMeta = append(postsWithMeta, p)
+	}
+
+	return postsWithMeta, nil
+}
+
+// pfq.Sort must be validated / sanitized before calling this function
+func (s *PostStore) GetExploreFeed(ctx context.Context, userId int64, pfq PaginatedFeedQuery) ([]PostWithMeta, error) {
+	query := `
+		SELECT p.id, p.content, p.title, p.user_id, p.tags, p.created_at, p.updated_at, COUNT(c.id), u.username
+		FROM posts p
+		LEFT JOIN comments c
+		ON c.post_id = p.id
+		LEFT JOIN users u
+		ON p.user_id = u.id
+		AND ($1 = '{}' OR p.tags @> $1::text[])
+		AND ($2 = '' OR p.content ILIKE '%' || $2 || '%' OR p.title ILIKE '%' || $2 || '%')
+		AND ($3 = '' OR p.created_at >= $3::timestamp with time zone)
+		AND ($4 = '' OR p.created_at <= $4::timestamp with time zone)
+		GROUP BY p.id, u.username
+		ORDER BY p.created_at ` + pfq.Sort + `
+		LIMIT $5
+		OFFSET $6
+	`
+	var postsWithMeta []PostWithMeta
+
+	rows, err := s.db.QueryContext(
+		ctx,
+		query,
 		pq.Array(pfq.Tags),
 		pfq.Search,
 		parseDbTime(pfq.Since),

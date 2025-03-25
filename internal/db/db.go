@@ -24,7 +24,7 @@ func New(addr string, maxOpenConns int, maxIdleConns int, maxIdleTime string, sc
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	if _, err := db.ExecContext(ctx, "SET search_path to "+schemaName); err != nil {
+	if _, err := db.ExecContext(ctx, "SET search_path to "+schemaName+", public"); err != nil {
 		return nil, err
 	}
 

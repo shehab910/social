@@ -130,7 +130,7 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userId int64, pfq Paginated
 		JOIN followers f 
 		ON f.user_id = p.user_id OR p.user_id = $1
 		WHERE f.follower_id = $1
-		AND ($2::VARCHAR(100)[] = '{}' OR p.tags @> $2::VARCHAR(100)[])
+		AND ($2 = '{}' OR p.tags @> $2::text[])
 		AND ($3 = '' OR p.content ILIKE '%' || $3 || '%' OR p.title ILIKE '%' || $3 || '%')
 		AND ($4 = '' OR p.created_at >= $4::timestamp with time zone)
 		AND ($5 = '' OR p.created_at <= $5::timestamp with time zone)

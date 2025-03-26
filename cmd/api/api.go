@@ -69,37 +69,41 @@ func (app *application) mount() http.Handler {
 		r.Get("/health", app.healthCheckHandler)
 
 		r.Route("/posts", func(r chi.Router) {
-			r.Use(app.AuthenticateMiddleware)
+			r.With(app.AuthenticateMiddleware).Post("/", app.createPostHandler)
 
-			r.Post("/", app.createPostHandler)
 			r.Route("/{post_id}", func(r chi.Router) {
 				r.Use(app.postContextMiddleware)
 
-				r.Get("/", app.getPostHandler)
-				r.Delete("/", app.deletePostHandler)
-				r.Patch("/", app.updatePostHandler)
+				r.Group(func(r chi.Router) {
+					r.Use(app.AuthenticateMiddleware)
+					r.Delete("/", app.deletePostHandler)
+					r.Patch("/", app.updatePostHandler)
+				})
+				r.Get("/", app.getPostHandler) // how to make this not require auth
 
-				r.Get("/comments", app.getPostCommentsHandler)
-				r.Post("/comments", app.createPostCommentHandler)
+				r.Route("/comments", func(r chi.Router) {
+					r.With(app.AuthenticateMiddleware).Post("/", app.createPostCommentHandler)
+					r.Get("/", app.getPostCommentsHandler)
+				})
 			})
 		})
 
 		r.Route("/users", func(r chi.Router) {
-			r.Use(app.AuthenticateMiddleware)
-
-			r.Get("/me", app.getMeHandler)
-
-			r.Route("/{user_id}", func(r chi.Router) {
-				r.Use(app.userContextMiddleware)
-
-				r.Get("/", app.getUserHandler)
-				r.Put("/follow", app.followUserHandler)
-				r.Put("/unfollow", app.unfollowUserHandler)
-			})
 			r.Group(func(r chi.Router) {
+				r.Use(app.AuthenticateMiddleware)
+
+				r.Get("/me", app.getMeHandler)
+
+				r.Route("/{user_id}", func(r chi.Router) {
+					r.Use(app.userContextMiddleware)
+
+					r.Get("/", app.getUserHandler)
+					r.Put("/follow", app.followUserHandler)
+					r.Put("/unfollow", app.unfollowUserHandler)
+				})
 				r.Get("/feed", app.getUserFeedHandler)
-				r.Get("/explore", app.getExploreHandler)
 			})
+			r.Get("/explore", app.getExploreHandler)
 		})
 
 		r.Route("/auth", func(r chi.Router) {

@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
-import { Link, useLocation, useRouteLoaderData } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Bell,
   Home,
@@ -36,23 +35,13 @@ import {
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
-import { logout, parseJWT } from "@/utils/auth";
+import { logout } from "@/utils/auth";
 import IconButton from "./ui/icon-button";
+import { useUser } from "@/hooks/use-user";
 
 export default function Header() {
   const location = useLocation();
-  const token = useRouteLoaderData("root");
-
-  const user = useMemo(() => {
-    if (!token) return null;
-    const user = parseJWT(token);
-    return {
-      name: user.username,
-      username: user.email,
-      // avatarUrl: `/placeholder.svg?height=40&width=40`,
-      notificationCount: 2,
-    };
-  }, [token]);
+  const user = useUser();
 
   const navItems = [
     { name: "Home", href: "/", icon: Home },
@@ -139,14 +128,12 @@ export default function Header() {
 
           <IconButton Icon={PlusSquare} text="Create" />
 
-          <NotificationButton
-            notificationCount={user?.notificationCount || 0}
-          />
+          <NotificationButton notificationCount={0} />
 
           <ThemeToggleButton />
 
-          {token && <UserButton user={user as Extract<typeof user, "null">} />}
-          {!token && (
+          {user && <UserButton />}
+          {!user && (
             <Link to="/login">
               <IconButton Icon={LogInIcon} text="Login" />
             </Link>
@@ -299,22 +286,19 @@ function NotificationButton({
     </>
   );
 }
-function UserButton({
-  user,
-}: {
-  user: {
-    name: string;
-    username: string;
-    avatarUrl: string;
-  };
-}) {
+function UserButton() {
+  const user = useUser();
+  if (!user) return null;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user.avatarUrl} alt={user.name} />
-            <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+            <AvatarImage src={user.imgUrl} alt={user.username} />
+            <AvatarFallback>
+              {user.username.charAt(0).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
           <span className="sr-only">User menu</span>
         </Button>
@@ -323,10 +307,10 @@ function UserButton({
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
             <p className="text-sm font-medium leading-none capitalize">
-              {user.name}
+              {user.username}
             </p>
             <p className="text-xs leading-none text-muted-foreground">
-              {user.username}
+              {user.email}
             </p>
           </div>
         </DropdownMenuLabel>

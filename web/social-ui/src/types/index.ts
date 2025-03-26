@@ -51,3 +51,14 @@ export type PaginatedFeedQuery = {
   since?: string;
   until?: string;
 };
+
+export type TokenData = {
+  email: string;
+  username: string;
+  userId: number;
+  imgUrl: string;
+  role: "user" | "admin";
+  exp: number;
+  isVerified: boolean;
+  // notificationCount: 2;
+};

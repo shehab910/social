@@ -10,6 +10,7 @@ import (
 type User struct {
 	ID          int64        `json:"id"`
 	Username    string       `json:"username"`
+	ImgUrl      string       `json:"img_url"`
 	Email       string       `json:"email"`
 	Password    string       `json:"-"`
 	Role        string       `json:"role"`
@@ -45,14 +46,23 @@ func (s *UserStore) Create(ctx context.Context, user *User) error {
 
 func (s *UserStore) GetById(ctx context.Context, id int64) (*User, error) {
 	query := `
-		SELECT id, username, email, password, role, verified, last_login_at, created_at, updated_at
+		SELECT id, username, email, password, role, verified, last_login_at, created_at, updated_at, image_url
 		FROM users
 		WHERE id = $1
 	`
 	var user User
 
 	err := s.db.QueryRowContext(ctx, query, id).Scan(
-		&user.ID, &user.Username, &user.Email, &user.Password, &user.Role, &user.Verified, &user.LastLoginAt, &user.CreatedAt, &user.UpdatedAt,
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.Role,
+		&user.Verified,
+		&user.LastLoginAt,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.ImgUrl,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -66,14 +76,23 @@ func (s *UserStore) GetById(ctx context.Context, id int64) (*User, error) {
 
 func (s *UserStore) GetByEmail(ctx context.Context, email string) (*User, error) {
 	query := `
-		SELECT id, username, email, password, role, verified, last_login_at, created_at, updated_at
+		SELECT id, username, email, password, role, verified, last_login_at, created_at, updated_at, image_url
 		FROM users
 		WHERE email = $1
 	`
 	var user User
 
 	err := s.db.QueryRowContext(ctx, query, email).Scan(
-		&user.ID, &user.Username, &user.Email, &user.Password, &user.Role, &user.Verified, &user.LastLoginAt, &user.CreatedAt, &user.UpdatedAt,
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.Password,
+		&user.Role,
+		&user.Verified,
+		&user.LastLoginAt,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.ImgUrl,
 	)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

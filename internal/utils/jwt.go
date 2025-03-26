@@ -9,11 +9,12 @@ import (
 
 //TODO: refactor to a struct with config that takes jwtSecret
 
-func GenerateToken(username string, email string, userId int64, role string, isVerified bool, tokenExpirationMins int, jwtSecret string) (string, error) {
+func GenerateToken(username string, imgUrl string, email string, userId int64, role string, isVerified bool, tokenExpirationMins int, jwtSecret string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email":    email,
 		"userId":   userId,
 		"username": username,
+		"imgUrl":   imgUrl,
 		"role":     role,
 		"exp":      time.Now().Add(time.Minute * time.Duration(tokenExpirationMins)).Unix(),
 		// This is redundant, but it's a good practice to include it

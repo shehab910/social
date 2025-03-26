@@ -7,9 +7,18 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
+type TokenClaims struct {
+	Email      string  `json:"email"`
+	UserId     int64   `json:"userId"`
+	Username   string  `json:"username"`
+	ImgUrl     *string `json:"imgUrl"`
+	Role       string  `json:"role"`
+	IsVerified bool    `json:"is_verified"`
+}
+
 //TODO: refactor to a struct with config that takes jwtSecret
 
-func GenerateToken(username string, imgUrl string, email string, userId int64, role string, isVerified bool, tokenExpirationMins int, jwtSecret string) (string, error) {
+func GenerateToken(username string, imgUrl *string, email string, userId int64, role string, isVerified bool, tokenExpirationMins int, jwtSecret string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"email":    email,
 		"userId":   userId,
@@ -41,4 +50,20 @@ func ValidateToken(tokenString string, jwtSecret string) (jwt.MapClaims, error) 
 		return claims, nil
 	}
 	return nil, err
+}
+
+func ParseClaims(claims jwt.MapClaims) TokenClaims {
+	img, ok := claims["imgUrl"].(*string)
+	if !ok {
+		img = nil
+	}
+
+	return TokenClaims{
+		Email:      claims["email"].(string),
+		UserId:     int64(claims["userId"].(float64)),
+		Username:   claims["username"].(string),
+		ImgUrl:     img,
+		Role:       claims["role"].(string),
+		IsVerified: claims["is_verified"].(bool),
+	}
 }

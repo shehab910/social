@@ -20,6 +20,10 @@ func (app *application) RateLimiterMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+type contextKey string
+
+const currUserCtx contextKey = "authUser"
+
 func (app *application) AuthenticateMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		tokenString := r.Header.Get("Authorization")
@@ -40,16 +44,19 @@ func (app *application) AuthenticateMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		userId, ok := claims["userId"].(float64)
+		_, ok := claims["userId"].(float64)
 		if !ok {
 			app.jsonResponse(w, http.StatusUnauthorized, map[string]string{"error": "Please login again and if not verified, verify your email"})
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "userId", int64(userId))
-		ctx = context.WithValue(ctx, "role", claims["role"])
-		ctx = context.WithValue(ctx, "email", claims["email"])
+		ctx := context.WithValue(r.Context(), currUserCtx, utils.ParseClaims(claims))
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func (app *application) getCurrentUserFromCtx(r *http.Request) utils.TokenClaims {
+	user, _ := r.Context().Value(currUserCtx).(utils.TokenClaims)
+	return user
 }

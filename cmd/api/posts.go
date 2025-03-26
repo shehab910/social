@@ -32,12 +32,13 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	user := app.getCurrentUserFromCtx(r)
+
 	post := &store.Post{
 		Title:   payload.Title,
 		Content: payload.Content,
 		Tags:    payload.Tags,
-		//TODO: change after auth
-		UserID: 1,
+		UserID:  user.UserId,
 	}
 
 	if err := app.store.Posts.Create(r.Context(), post); err != nil {
@@ -68,15 +69,19 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
-	// TODO: check if the post is not found from the already fetched post from the context
-	postId := chi.URLParam(r, "post_id")
-	postIdParsed, err := strconv.ParseInt(postId, 10, 64)
-	if err != nil {
-		app.badRequestError(w, r, errors.New("wrong post id"))
+	post := getPostFromCtx(r)
+	if post == nil {
+		app.badRequestError(w, r, errors.New("post not found in context"))
 		return
 	}
 
-	if err := app.store.Posts.DeleteById(r.Context(), postIdParsed); err != nil {
+	user := app.getCurrentUserFromCtx(r)
+	if post.UserID != user.UserId {
+		app.customErrorResponse(w, r, http.StatusForbidden, errors.New("you are not allowed to delete this post"))
+		return
+	}
+
+	if err := app.store.Posts.DeleteById(r.Context(), post.ID); err != nil {
 		switch {
 		case errors.Is(err, store.ErrNotFound):
 			app.notFoundResponse(w, r, err)
@@ -96,6 +101,16 @@ type UpdatePostPayload struct {
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
 	//TODO: Handle update with tags
 	post := getPostFromCtx(r)
+	if post == nil {
+		app.badRequestError(w, r, errors.New("post not found in context"))
+		return
+	}
+
+	user := app.getCurrentUserFromCtx(r)
+	if post.UserID != user.UserId {
+		app.customErrorResponse(w, r, http.StatusForbidden, errors.New("you are not allowed to modify this post"))
+		return
+	}
 
 	var payload UpdatePostPayload
 	if err := readJSON(w, r, &payload); err != nil {

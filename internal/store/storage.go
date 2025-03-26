@@ -18,7 +18,7 @@ type Storage struct {
 		Update(context.Context, *Post) error
 		DeleteById(ctx context.Context, id int64) error
 		GetUserFeed(context.Context, int64, PaginatedFeedQuery) ([]PostWithMeta, error)
-		GetExploreFeed(context.Context, int64, PaginatedFeedQuery) ([]PostWithMeta, error)
+		GetExploreFeed(context.Context, PaginatedFeedQuery) ([]PostWithMeta, error)
 	}
 	Users interface {
 		GetById(ctx context.Context, id int64) (*User, error)
@@ -32,8 +32,8 @@ type Storage struct {
 		Create(context.Context, *Comment) error
 	}
 	Followers interface {
-		Follow(ctx context.Context, followerId int64, userId int64) error
-		Unfollow(ctx context.Context, followerId int64, userId int64) error
+		Follow(ctx context.Context, followerId int64, followedId int64) error
+		Unfollow(ctx context.Context, followerId int64, followedId int64) error
 	}
 }
 

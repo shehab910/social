@@ -23,12 +23,12 @@ func (app *application) createPostCommentHandler(w http.ResponseWriter, r *http.
 	}
 
 	post := getPostFromCtx(r)
-	userId := app.currentUserIdFromCtx(r)
+	user := app.getCurrentUserFromCtx(r)
 
 	comment := &store.Comment{
 		Content: payload.Content,
 		PostID:  post.ID,
-		UserID:  userId,
+		UserID:  user.UserId,
 	}
 
 	if err := app.store.Comments.Create(r.Context(), comment); err != nil {

@@ -15,11 +15,6 @@ type userKey string
 
 const userCtx userKey = "user"
 
-func (app *application) currentUserIdFromCtx(r *http.Request) int64 {
-	userId, _ := r.Context().Value("userId").(int64)
-	return userId
-}
-
 func (app *application) getMeHandler(w http.ResponseWriter, r *http.Request) {
 	claims, err := utils.ValidateToken(r.Header.Get("Authorization"), app.config.jwtSecret)
 	if err != nil {
@@ -40,16 +35,10 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
-	followerUser := getUserFromCtx(r)
+	followedUser := getUserFromCtx(r)
+	followerUser := app.getCurrentUserFromCtx(r)
 
-	//TODO: Revert back to auth userID from ctx
-	var payload FollowUser
-	if err := readJSON(w, r, &payload); err != nil {
-		app.badRequestError(w, r, err)
-		return
-	}
-
-	if err := app.store.Followers.Follow(r.Context(), payload.UserID, followerUser.ID); err != nil {
+	if err := app.store.Followers.Follow(r.Context(), followerUser.UserId, followedUser.ID); err != nil {
 		if errors.Is(err, store.ErrConflict) {
 			app.conflictResponse(w, r, err)
 			return
@@ -69,16 +58,10 @@ type FollowUser struct {
 }
 
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
-	followerUser := getUserFromCtx(r)
+	followedUser := getUserFromCtx(r)
+	followerUser := app.getCurrentUserFromCtx(r)
 
-	//TODO: Revert back to auth userID from ctx
-	var payload FollowUser
-	if err := readJSON(w, r, &payload); err != nil {
-		app.badRequestError(w, r, err)
-		return
-	}
-
-	if err := app.store.Followers.Unfollow(r.Context(), payload.UserID, followerUser.ID); err != nil {
+	if err := app.store.Followers.Unfollow(r.Context(), followerUser.UserId, followedUser.ID); err != nil {
 		app.internalServerError(w, r, err)
 		return
 	}

@@ -185,7 +185,7 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userId int64, pfq Paginated
 }
 
 // pfq.Sort must be validated / sanitized before calling this function
-func (s *PostStore) GetExploreFeed(ctx context.Context, userId int64, pfq PaginatedFeedQuery) ([]PostWithMeta, error) {
+func (s *PostStore) GetExploreFeed(ctx context.Context, pfq PaginatedFeedQuery) ([]PostWithMeta, error) {
 	query := `
 		SELECT p.id, p.content, p.title, p.user_id, p.tags, p.created_at, p.updated_at, COUNT(c.id), u.username
 		FROM posts p

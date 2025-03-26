@@ -25,8 +25,8 @@ func (app *application) getUserFeedHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	userId := app.currentUserIdFromCtx(r)
-	posts, err := app.store.Posts.GetUserFeed(r.Context(), userId, pfq)
+	user := app.getCurrentUserFromCtx(r)
+	posts, err := app.store.Posts.GetUserFeed(r.Context(), user.UserId, pfq)
 	if err != nil {
 		app.internalServerError(w, r, err)
 		return
@@ -61,8 +61,7 @@ func (app *application) getExploreHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	userId := app.currentUserIdFromCtx(r)
-	posts, err := app.store.Posts.GetExploreFeed(r.Context(), userId, pfq)
+	posts, err := app.store.Posts.GetExploreFeed(r.Context(), pfq)
 	if err != nil {
 		app.internalServerError(w, r, err)
 		return

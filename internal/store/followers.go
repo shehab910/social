@@ -17,13 +17,13 @@ type FollowerStore struct {
 	db *sql.DB
 }
 
-func (s *FollowerStore) Follow(ctx context.Context, followerId int64, userId int64) error {
+func (s *FollowerStore) Follow(ctx context.Context, followerId int64, followedId int64) error {
 	query := `
 		INSERT INTO followers(user_id, follower_id)
 		VALUES ($1, $2)
 	`
 
-	_, err := s.db.ExecContext(ctx, query, userId, followerId)
+	_, err := s.db.ExecContext(ctx, query, followedId, followerId)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
 			return ErrConflict
@@ -33,12 +33,12 @@ func (s *FollowerStore) Follow(ctx context.Context, followerId int64, userId int
 	return err
 }
 
-func (s *FollowerStore) Unfollow(ctx context.Context, followerId int64, userId int64) error {
+func (s *FollowerStore) Unfollow(ctx context.Context, followerId int64, followedId int64) error {
 	query := `
 		DELETE FROM followers
 		WHERE user_id = $1 AND follower_id = $2
 	`
 
-	_, err := s.db.ExecContext(ctx, query, userId, followerId)
+	_, err := s.db.ExecContext(ctx, query, followedId, followerId)
 	return err
 }

@@ -149,7 +149,7 @@ export default function FeedFilters({
           <DropdownMenuLabel>Tags</DropdownMenuLabel>
           <div className="p-2 flex flex-wrap gap-1.5">
             <div
-              className="sticky top-0 z-10 bg-white p-1"
+              className="sticky top-0 z-10 p-1"
               onKeyDown={(e) => e.stopPropagation()}
             >
               <TagInput fields={selectedTags} add={addTag} remove={removeTag} />

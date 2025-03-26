@@ -1,5 +1,13 @@
 import { Comment } from "@/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { formatDistanceToNowStrict } from "date-fns";
 
 interface CommentListProps {
   comments: Comment[];
@@ -23,15 +31,24 @@ export default function CommentList({ comments }: CommentListProps) {
               src={comment.user.avatarUrl}
               alt={comment.user.username}
             />
-            <AvatarFallback>{comment.user.username.charAt(0)}</AvatarFallback>
+            <AvatarFallback>
+              {comment.user.username.charAt(0).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
           <div className="flex-1">
-            <div className="bg-white p-2 rounded shadow-sm">
-              <div className="font-medium text-sm">{comment.user.username}</div>
-              <p className="text-sm">{comment.content}</p>
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              {new Date(comment.created_at).toLocaleString()}
+            <Card className="gap-0 px-3 py-2 rounded-sm dark:brightness-85">
+              <CardHeader className="p-0">
+                <CardTitle className="text-sm font-medium">
+                  {comment.user.username}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <p className="text-sm">{comment.content}</p>
+              </CardContent>
+              <CardFooter></CardFooter>
+            </Card>
+            <div className="py-1 px-2 text-xs text-gray-500">
+              {formatDistanceToNowStrict(new Date(comment.created_at), {})}
             </div>
           </div>
         </div>

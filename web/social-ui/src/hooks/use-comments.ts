@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { Comment, Envelope } from "@/types";
+import axios, { AxiosError } from "axios";
+import { authErrorToast } from "@/utils/toast";
 
 export const usePostComments = (postId: number | null) => {
   return useQuery({
@@ -43,6 +45,11 @@ export const useAddComment = () => {
       queryClient.invalidateQueries({
         queryKey: ["feed"],
       });
+    },
+    onError: (err: AxiosError) => {
+      if (err.response?.status === axios.HttpStatusCode.Unauthorized) {
+        authErrorToast();
+      }
     },
   });
 };

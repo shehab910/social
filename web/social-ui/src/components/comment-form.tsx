@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAddComment } from "@/hooks/use-comments";
+import { useUser } from "@/hooks/use-user";
 
 interface CommentFormProps {
   postId: number;
@@ -15,6 +16,8 @@ interface CommentFormProps {
 export function CommentForm({ postId }: CommentFormProps) {
   const [content, setContent] = useState("");
   const addCommentMutation = useAddComment();
+
+  const user = useUser();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,10 +36,7 @@ export function CommentForm({ postId }: CommentFormProps) {
   return (
     <form onSubmit={handleSubmit} className="flex items-start space-x-2">
       <Avatar className="w-8 h-8">
-        <AvatarImage
-          src="/placeholder.svg?height=32&width=32"
-          alt="Your avatar"
-        />
+        <AvatarImage src={user?.imgUrl || ""} alt="Your avatar" />
         <AvatarFallback>YA</AvatarFallback>
       </Avatar>
       <div className="flex-1 space-y-2">

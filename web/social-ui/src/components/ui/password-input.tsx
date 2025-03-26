@@ -18,9 +18,9 @@ export default function PasswordInput({
     <div className="*:not-first:mt-2">
       <div className="relative">
         <Input
+          {...props}
           id={id}
           className={cn("pe-9", className)}
-          {...props}
           placeholder="Password"
           type={isVisible ? "text" : "password"}
         />

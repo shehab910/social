@@ -110,8 +110,8 @@ export default function PostCard({ post }: PostCardProps) {
       <CardFooter className="flex flex-col items-start">
         {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 pb-2">
-            {post.tags.map((tag) => (
-              <Badge key={post.id + tag} variant="secondary">
+            {post.tags.map((tag, i) => (
+              <Badge key={post.id + tag + i} variant="secondary">
                 #{tag}
               </Badge>
             ))}

@@ -12,3 +12,9 @@ export const authErrorToast = () =>
     },
     richColors: true,
   });
+
+export const genericErrorToast = () =>
+  toast.error("An error occurred", {
+    richColors: true,
+    description: "Please try again later",
+  });

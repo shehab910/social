@@ -28,7 +28,7 @@ export default function CommentList({ comments }: CommentListProps) {
         <div key={comment.id} className="flex gap-2">
           <Avatar className="w-8 h-8">
             <AvatarImage
-              src={comment.user.avatarUrl}
+              src={comment.user.img_url}
               alt={comment.user.username}
             />
             <AvatarFallback>

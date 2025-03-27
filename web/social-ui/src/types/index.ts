@@ -12,6 +12,11 @@ export type User = {
   created_at: string;
   updated_at: string;
   img_url: string;
+  //TODO: implement what is below
+  bio: string;
+  website: string;
+  location: string;
+  banner_url: string;
 };
 
 export type Comment = {
@@ -60,4 +65,12 @@ export type TokenData = {
   exp: number;
   isVerified: boolean;
   // notificationCount: 2;
+};
+
+export type ProfileData = {
+  user: User;
+  is_followed: boolean;
+  posts_count: number;
+  followers_count: number;
+  following_count: number;
 };

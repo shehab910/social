@@ -63,7 +63,7 @@ export const useUserFeed = (query: PaginatedFeedQuery) => {
 
 export const useExploreFeed = (query: PaginatedFeedQuery) => {
   return useQuery({
-    queryKey: ["feed", query],
+    queryKey: ["explore", query],
     queryFn: async () => {
       const queryString = buildFeedQueryString(query);
 

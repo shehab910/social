@@ -38,10 +38,13 @@ import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { logout } from "@/utils/auth";
 import IconButton from "./ui/icon-button";
 import { useCurrUser } from "@/hooks/use-curr-user";
+import { CreatePostModal } from "./create-post-modal";
+import { useState } from "react";
 
 export default function Header() {
   const location = useLocation();
   const user = useCurrUser();
+  const [createPostOpen, setCreatePostOpen] = useState(false);
 
   const navItems = [
     { name: "Home", href: "/", icon: Home },
@@ -53,102 +56,105 @@ export default function Header() {
 
   const isActive = (path: string) => location.pathname === path;
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="max-w-5xl w-full p-2 flex items-center h-14 md:mx-auto md:w-[90%]">
-        <div className="mr-4 hidden md:flex">
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="font-bold text-xl">SocialApp</span>
-          </Link>
-        </div>
+    <>
+      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="max-w-5xl w-full p-2 flex items-center h-14 md:mx-auto md:w-[90%]">
+          <div className="mr-4 hidden md:flex">
+            <Link to="/" className="flex items-center space-x-2">
+              <span className="font-bold text-xl">SocialApp</span>
+            </Link>
+          </div>
 
-        {/* Mobile Menu */}
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="md:hidden">
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="pr-0">
-            <SheetHeader>
-              <SheetTitle className="text-left">SocialApp</SheetTitle>
-            </SheetHeader>
-            <div className="grid gap-2 py-6">
-              {navItems.map((item) => (
-                <SheetClose asChild key={item.name}>
-                  <Link
-                    to={item.href}
-                    className={`flex items-center gap-2 px-4 py-2 text-sm rounded-md ${
-                      isActive(item.href)
-                        ? "bg-accent font-medium"
-                        : "hover:bg-accent/50"
-                    }`}
-                  >
-                    <item.icon className="h-4 w-4" />
-                    {item.name}
-                    {/* {item.badge && (
+          {/* Mobile Menu */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="pr-0">
+              <SheetHeader>
+                <SheetTitle className="text-left">SocialApp</SheetTitle>
+              </SheetHeader>
+              <div className="grid gap-2 py-6">
+                {navItems.map((item) => (
+                  <SheetClose asChild key={item.name}>
+                    <Link
+                      to={item.href}
+                      className={`flex items-center gap-2 px-4 py-2 text-sm rounded-md ${
+                        isActive(item.href)
+                          ? "bg-accent font-medium"
+                          : "hover:bg-accent/50"
+                      }`}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {item.name}
+                      {/* {item.badge && (
                       <Badge variant="secondary" className="ml-auto">
                         {item.badge}
                       </Badge>
                     )} */}
-                  </Link>
-                </SheetClose>
-              ))}
-            </div>
-          </SheetContent>
-        </Sheet>
+                    </Link>
+                  </SheetClose>
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
 
-        {/* Desktop Logo (Mobile) */}
-        <Link to="/" className="md:hidden">
-          <span className="font-bold text-lg">SocialApp</span>
-        </Link>
+          {/* Desktop Logo (Mobile) */}
+          <Link to="/" className="md:hidden">
+            <span className="font-bold text-lg">SocialApp</span>
+          </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-1 ml-6">
-          {navItems.map((item) => (
-            <Link
-              key={item.name}
-              to={item.href}
-              className={`px-3 py-2 text-sm rounded-md flex items-center gap-2 ${
-                isActive(item.href)
-                  ? "bg-accent font-medium"
-                  : "hover:bg-accent/50"
-              }`}
-            >
-              <item.icon className="h-4 w-4" />
-              <span className="hidden lg:block">{item.name}</span>
-              {/* {item.badge && <Badge variant="secondary">{item.badge}</Badge>} */}
-            </Link>
-          ))}
-        </nav>
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center space-x-1 ml-6">
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className={`px-3 py-2 text-sm rounded-md flex items-center gap-2 ${
+                  isActive(item.href)
+                    ? "bg-accent font-medium"
+                    : "hover:bg-accent/50"
+                }`}
+              >
+                <item.icon className="h-4 w-4" />
+                <span className="hidden lg:block">{item.name}</span>
+                {/* {item.badge && <Badge variant="secondary">{item.badge}</Badge>} */}
+              </Link>
+            ))}
+          </nav>
 
-        <div className="flex flex-1 items-center justify-end space-x-2">
-          {/* TODO: implement global search */}
-          {/* <SearchInput /> */}
+          <div className="flex flex-1 items-center justify-end space-x-2">
+            {/* TODO: implement global search */}
+            {/* <SearchInput /> */}
 
-          <IconButton
-            onClick={() =>
-              toast.info("Very Soon!", {
-                description: "This feature is my next step, stay tuned!",
-              })
-            }
-            Icon={PlusSquare}
-            text="Create"
-          />
+            <IconButton
+              onClick={() =>
+                user
+                  ? setCreatePostOpen(true)
+                  : toast.info("Login first to create a post!")
+              }
+              Icon={PlusSquare}
+              text="Create"
+            />
 
-          <NotificationButton notificationCount={0} />
+            <NotificationButton notificationCount={0} />
 
-          <ThemeToggleButton />
+            <ThemeToggleButton />
 
-          {user && <UserButton />}
-          {!user && (
-            <Link to="/login">
-              <IconButton Icon={LogInIcon} text="Login" />
-            </Link>
-          )}
+            {user && <UserButton />}
+            {!user && (
+              <Link to="/login">
+                <IconButton Icon={LogInIcon} text="Login" />
+              </Link>
+            )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+      <CreatePostModal open={createPostOpen} onOpenChange={setCreatePostOpen} />
+    </>
   );
 }
 

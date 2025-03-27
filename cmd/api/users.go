@@ -96,6 +96,66 @@ func (app *application) userContextMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func (app *application) getUserProfileHandler(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromCtx(r)
+
+	//todo: check if user is logged in and pass current user to GetProfileById
+	// currUser, isLoggedIn := r.Context().Value(currUserCtx).(utils.TokenClaims)
+	// var currUserId *int64
+	// if !isLoggedIn {
+	// 	currUserId = nil
+	// } else {
+	// 	currUserId = &currUser.UserId
+	// }
+	// log.Info().Msgf("currUserId: %v", currUserId)
+
+	profileData, err := app.store.Users.GetProfileById(r.Context(), user.ID, nil)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, profileData); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
+func (app *application) isFollowedHandler(w http.ResponseWriter, r *http.Request) {
+	followedUser := getUserFromCtx(r)
+	followerUser := app.getCurrentUserFromCtx(r)
+
+	isFollowed, err := app.store.Followers.IsFollowed(r.Context(), followerUser.UserId, followedUser.ID)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, map[string]bool{"is_followed": isFollowed}); err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
+func (app *application) getUserPostsHandler(w http.ResponseWriter, r *http.Request) {
+	user := getUserFromCtx(r)
+
+	posts, err := app.store.Posts.GetUserPostsByUserId(r.Context(), user.ID)
+	if err != nil {
+		app.internalServerError(w, r, err)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, posts); err != nil {
+		if errors.Is(err, store.ErrNotFound) {
+			app.jsonResponse(w, http.StatusOK, []bool{})
+			return
+		}
+		app.internalServerError(w, r, err)
+		return
+	}
+}
+
 func getUserFromCtx(r *http.Request) *store.User {
 	user, _ := r.Context().Value(userCtx).(*store.User)
 	return user

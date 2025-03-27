@@ -12,12 +12,21 @@ type User struct {
 	Username    string       `json:"username"`
 	ImgUrl      *string      `json:"img_url"`
 	Email       string       `json:"email"`
+	Bio         *string      `json:"bio"`
 	Password    string       `json:"-"`
 	Role        string       `json:"role"`
 	Verified    bool         `json:"verified"`
 	LastLoginAt sql.NullTime `json:"last_login_at"`
 	CreatedAt   string       `json:"created_at"`
 	UpdatedAt   string       `json:"updated_at"`
+}
+
+type ProfileData struct {
+	User           *User `json:"user"`
+	IsFollowed     bool  `json:"is_followed"`
+	PostsCount     int   `json:"posts_count"`
+	FollowersCount int   `json:"followers_count"`
+	FollowingCount int   `json:"following_count"`
 }
 
 type UserStore struct {
@@ -130,4 +139,67 @@ func (s *UserStore) VerifyUser(ctx context.Context, userId int64) error {
 
 	_, err := s.db.ExecContext(ctx, query, userId)
 	return err
+}
+
+func (s *UserStore) GetProfileById(ctx context.Context, userId int64, currUserIdIfExist *int64) (ProfileData, error) {
+	query := `
+		SELECT 
+			u.id, 
+			u.username, 
+			u.email, 
+			u.bio, 
+			u.image_url, 
+			u."role", 
+			u.last_login_at, 
+			u.verified, 
+			u.created_at, 
+			u.updated_at, 
+			COUNT(DISTINCT f1.user_id) AS following_count, -- Counting who the user is following
+			COUNT(DISTINCT f2.follower_id) AS followers_count,  -- Counting followers
+			COUNT(p.id) AS posts_count,
+			CASE 
+				WHEN EXISTS (SELECT 1 FROM followers WHERE user_id = u.id AND follower_id = $2) THEN TRUE
+				ELSE FALSE
+			END AS is_followed
+		FROM 
+			users u
+		LEFT JOIN 
+			followers f1 ON f1.follower_id = u.id  -- Counting who the user is following
+		LEFT JOIN 
+			followers f2 ON f2.user_id = u.id     -- Counting followers (those who follow the user)
+		LEFT JOIN posts p ON p.user_id = u.id
+		WHERE u.id = $1
+		GROUP BY 
+			u.id, u.username, u.email, u.bio, u.image_url, u."role", u.last_login_at, u.verified, u.created_at, u.updated_at;
+
+	`
+	var currUserId int64 = 0
+	if currUserIdIfExist != nil {
+		currUserId = *currUserIdIfExist
+	}
+
+	var profile ProfileData
+	profile.User = &User{}
+	err := s.db.QueryRowContext(ctx, query, userId, currUserId).Scan(
+		&profile.User.ID,
+		&profile.User.Username,
+		&profile.User.Email,
+		&profile.User.Bio,
+		&profile.User.ImgUrl,
+		&profile.User.Role,
+		&profile.User.LastLoginAt,
+		&profile.User.Verified,
+		&profile.User.CreatedAt,
+		&profile.User.UpdatedAt,
+		&profile.FollowingCount,
+		&profile.FollowersCount,
+		&profile.PostsCount,
+		&profile.IsFollowed,
+	)
+	if err != nil {
+		return ProfileData{}, err
+	}
+
+	return profile, nil
+
 }

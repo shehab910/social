@@ -89,21 +89,30 @@ func (app *application) mount() http.Handler {
 		})
 
 		r.Route("/users", func(r chi.Router) {
+			r.Get("/explore", app.getExploreHandler)
+
 			r.Group(func(r chi.Router) {
 				r.Use(app.AuthenticateMiddleware)
 
 				r.Get("/me", app.getMeHandler)
+				r.Get("/feed", app.getUserFeedHandler)
+			})
 
-				r.Route("/{user_id}", func(r chi.Router) {
-					r.Use(app.userContextMiddleware)
+			r.Route("/{user_id}", func(r chi.Router) {
+				r.Use(app.userContextMiddleware)
 
-					r.Get("/", app.getUserHandler)
+				r.Get("/", app.getUserHandler)
+				r.Get("/profile", app.getUserProfileHandler)
+
+				r.Group(func(r chi.Router) {
+					r.Use(app.AuthenticateMiddleware)
+
+					r.Get("/posts", app.getUserPostsHandler)
+					r.Get("/is_followed", app.isFollowedHandler)
 					r.Put("/follow", app.followUserHandler)
 					r.Put("/unfollow", app.unfollowUserHandler)
 				})
-				r.Get("/feed", app.getUserFeedHandler)
 			})
-			r.Get("/explore", app.getExploreHandler)
 		})
 
 		r.Route("/auth", func(r chi.Router) {

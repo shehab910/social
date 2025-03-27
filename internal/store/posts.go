@@ -121,7 +121,7 @@ func (s *PostStore) Update(ctx context.Context, post *Post) error {
 // pfq.Sort must be validated / sanitized before calling this function
 func (s *PostStore) GetUserFeed(ctx context.Context, userId int64, pfq PaginatedFeedQuery) ([]PostWithMeta, error) {
 	query := `
-		SELECT p.id, p.content, p.title, p.user_id, p.tags, p.created_at, p.updated_at, COUNT(c.id), u.username
+		SELECT p.id, p.content, p.title, p.user_id, p.tags, p.created_at, p.updated_at, COUNT(c.id), u.username, u.email, u.created_at, u.image_url, u.id
 		FROM posts p
 		LEFT JOIN comments c
 		ON c.post_id = p.id
@@ -138,7 +138,7 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userId int64, pfq Paginated
 		AND ($3 = '' OR p.content ILIKE '%' || $3 || '%' OR p.title ILIKE '%' || $3 || '%')
 		AND ($4 = '' OR p.created_at >= $4::timestamp with time zone)
 		AND ($5 = '' OR p.created_at <= $5::timestamp with time zone)
-		GROUP BY p.id, u.username
+		GROUP BY p.id, u.id
 		ORDER BY p.created_at ` + pfq.Sort + `
 		LIMIT $6
 		OFFSET $7
@@ -168,12 +168,16 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userId int64, pfq Paginated
 			&p.ID,
 			&p.Content,
 			&p.Title,
-			&p.User.ID,
+			&p.UserID,
 			pq.Array(&p.Tags),
 			&p.CreatedAt,
 			&p.UpdatedAt,
 			&p.CommentCount,
 			&p.User.Username,
+			&p.User.Email,
+			&p.User.CreatedAt,
+			&p.User.ImgUrl,
+			&p.User.ID,
 		)
 		if err != nil {
 			return nil, err
@@ -187,7 +191,7 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userId int64, pfq Paginated
 // pfq.Sort must be validated / sanitized before calling this function
 func (s *PostStore) GetExploreFeed(ctx context.Context, pfq PaginatedFeedQuery) ([]PostWithMeta, error) {
 	query := `
-		SELECT p.id, p.content, p.title, p.user_id, p.tags, p.created_at, p.updated_at, COUNT(c.id), u.username
+		SELECT p.id, p.content, p.title, p.user_id, p.tags, p.created_at, p.updated_at, COUNT(c.id), u.username, u.email, u.created_at, u.image_url, u.id
 		FROM posts p
 		LEFT JOIN comments c
 		ON c.post_id = p.id
@@ -201,7 +205,7 @@ func (s *PostStore) GetExploreFeed(ctx context.Context, pfq PaginatedFeedQuery) 
 		AND ($2 = '' OR p.content ILIKE '%' || $2 || '%' OR p.title ILIKE '%' || $2 || '%')
 		AND ($3 = '' OR p.created_at >= $3::timestamp with time zone)
 		AND ($4 = '' OR p.created_at <= $4::timestamp with time zone)
-		GROUP BY p.id, u.username
+		GROUP BY p.id, u.id
 		ORDER BY p.created_at ` + pfq.Sort + `
 		LIMIT $5
 		OFFSET $6
@@ -230,12 +234,67 @@ func (s *PostStore) GetExploreFeed(ctx context.Context, pfq PaginatedFeedQuery) 
 			&p.ID,
 			&p.Content,
 			&p.Title,
-			&p.User.ID,
+			&p.UserID,
 			pq.Array(&p.Tags),
 			&p.CreatedAt,
 			&p.UpdatedAt,
 			&p.CommentCount,
 			&p.User.Username,
+			&p.User.Email,
+			&p.User.CreatedAt,
+			&p.User.ImgUrl,
+			&p.User.ID,
+		)
+		if err != nil {
+			return nil, err
+		}
+		postsWithMeta = append(postsWithMeta, p)
+	}
+
+	return postsWithMeta, nil
+}
+
+func (s *PostStore) GetUserPostsByUserId(ctx context.Context, userId int64) ([]PostWithMeta, error) {
+	query := `
+	SELECT p.id, p.content, p.title, p.user_id, p.tags, p.created_at, p.updated_at, COUNT(c.id), u.username, u.email, u.created_at, u.image_url, u.id
+	FROM posts p
+	LEFT JOIN comments c
+	ON c.post_id = p.id
+	LEFT JOIN users u
+	ON p.user_id = u.id
+	WHERE p.user_id = $1
+	GROUP BY p.id, u.id
+	ORDER BY p.created_at DESC
+`
+	var postsWithMeta []PostWithMeta
+
+	rows, err := s.db.QueryContext(
+		ctx,
+		query,
+		userId,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var p PostWithMeta
+
+		err := rows.Scan(
+			&p.ID,
+			&p.Content,
+			&p.Title,
+			&p.UserID,
+			pq.Array(&p.Tags),
+			&p.CreatedAt,
+			&p.UpdatedAt,
+			&p.CommentCount,
+			&p.User.Username,
+			&p.User.Email,
+			&p.User.CreatedAt,
+			&p.User.ImgUrl,
+			&p.User.ID,
 		)
 		if err != nil {
 			return nil, err

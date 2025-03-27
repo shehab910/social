@@ -126,7 +126,15 @@ export default function Header() {
           {/* TODO: implement global search */}
           {/* <SearchInput /> */}
 
-          <IconButton Icon={PlusSquare} text="Create" />
+          <IconButton
+            onClick={() =>
+              toast.info("Very Soon!", {
+                description: "This feature is my next step, stay tuned!",
+              })
+            }
+            Icon={PlusSquare}
+            text="Create"
+          />
 
           <NotificationButton notificationCount={0} />
 

@@ -1,6 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { Post, PaginatedFeedQuery, Envelope } from "@/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios, { type AxiosError } from "axios";
+import { authErrorToast } from "@/utils/toast";
 
 export const buildFeedQueryString = (query: PaginatedFeedQuery): string => {
   const params = new URLSearchParams();
@@ -84,5 +87,30 @@ export const usePost = (postId: number | null) => {
       return data;
     },
     enabled: !!postId, // Only run if postId exists
+  });
+};
+
+type PostFormValues = {
+  title: string;
+  content: string;
+  tags: string[];
+  image_url?: string;
+};
+export const useCreatePost = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (postData: PostFormValues) => {
+      const { data } = await apiClient.post<Envelope<Post>>("/posts", postData);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["feed", "explore"] });
+    },
+    onError: (err: AxiosError) => {
+      if (err.response?.status === axios.HttpStatusCode.Unauthorized) {
+        authErrorToast();
+      }
+    },
   });
 };

@@ -37,11 +37,11 @@ import { toast } from "sonner";
 import { ThemeToggleButton } from "@/components/theme-toggle-button";
 import { logout } from "@/utils/auth";
 import IconButton from "./ui/icon-button";
-import { useUser } from "@/hooks/use-user";
+import { useCurrUser } from "@/hooks/use-curr-user";
 
 export default function Header() {
   const location = useLocation();
-  const user = useUser();
+  const user = useCurrUser();
 
   const navItems = [
     { name: "Home", href: "/", icon: Home },
@@ -287,7 +287,7 @@ function NotificationButton({
   );
 }
 function UserButton() {
-  const user = useUser();
+  const user = useCurrUser();
   if (!user) return null;
 
   return (

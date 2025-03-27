@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAddComment } from "@/hooks/use-comments";
-import { useUser } from "@/hooks/use-user";
+import { useCurrUser } from "@/hooks/use-curr-user";
 
 interface CommentFormProps {
   postId: number;
@@ -17,7 +17,7 @@ export function CommentForm({ postId }: CommentFormProps) {
   const [content, setContent] = useState("");
   const addCommentMutation = useAddComment();
 
-  const user = useUser();
+  const user = useCurrUser();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -48,20 +48,20 @@ export default function PostCard({ post }: PostCardProps) {
     <Card>
       <CardHeader className="flex flex-row items-start space-y-0 gap-3">
         <Avatar className="my-auto">
-          <AvatarImage src={post.user.avatarUrl} alt={post.user.username} />
+          <AvatarImage src={post.user.img_url} alt={post.user.username} />
           <AvatarFallback>{post.user.username.charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="flex-1 space-y-1">
           <div className="flex items-center justify-between">
             <div>
               <Link
-                to={`/profile/${post.user.username}`}
+                to={`/profile/${post.user.id}`}
                 className="font-semibold hover:underline"
               >
                 {post.user.username}
               </Link>
               <p className="text-sm text-muted-foreground">
-                @{post.user.username} ·{" "}
+                {post.user.email} ·{" "}
                 {formatDistanceToNow(new Date(post.created_at), {
                   addSuffix: true,
                 })}

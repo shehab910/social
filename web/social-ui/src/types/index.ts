@@ -11,8 +11,7 @@ export type User = {
   last_login_at: string | null;
   created_at: string;
   updated_at: string;
-  //TODO: implement what is below
-  avatarUrl?: string;
+  img_url: string;
 };
 
 export type Comment = {

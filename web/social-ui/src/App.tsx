@@ -85,7 +85,7 @@ const router = createBrowserRouter([
         loader: checkAuthLoader,
       },
       {
-        path: "profile/:username",
+        path: "profile/:id",
         element: <ProfilePage />,
         loader: checkAuthLoader,
       },

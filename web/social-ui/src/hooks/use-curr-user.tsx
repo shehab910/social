@@ -3,7 +3,7 @@ import { parseJWT } from "@/utils/auth";
 import { useMemo } from "react";
 import { useRouteLoaderData } from "react-router-dom";
 
-export function useUser(): TokenData | null {
+export function useCurrUser(): TokenData | null {
   const token = useRouteLoaderData<string | null>("root");
   if (!token) {
     return null;
